@@ -8,6 +8,7 @@ import { Button } from 'react-native';
 // Import screens
 import InitialScreen from '../screens/InitialScreen';
 import DriverHomeScreen from '../screens/driverScreens/DriverHomeScreen';
+import OrderDetailsScreen from '../screens/driverScreens/OrderDetailsScreen';
 import DriverDetailsScreen from '../screens/driverScreens/DriverDetailsScreen';
 import DriverLoginScreen from '../screens/driverScreens/DriverLoginScreen';
 import DriverLogoutScreen from '../screens/driverScreens/DriverLogoutScreen';
@@ -16,44 +17,56 @@ import { useAuth } from '../context/AuthContext';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Stack Navigator for DriverHome and OrderDetails
+const DriverHomeStackNavigator = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="DriverHome"
+        component={DriverHomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="OrderDetails"
+        component={OrderDetailsScreen}
+        options={{ title: 'Order Details' }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+// Tab Navigator for the main driver sections
 const DriverTabNavigator = () => {
   return (
     <Tab.Navigator>
-      <Tab.Screen name="Home" component={DriverHomeScreen} />
-      <Tab.Screen name="Details" component={DriverDetailsScreen} />
-      <Tab.Screen name="Logout" component={DriverLogoutScreen} />
+      <Tab.Screen
+        name="Home"
+        component={DriverHomeStackNavigator}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="DriverDetails"
+        component={DriverDetailsScreen}
+        options={{ title: 'Details' }}
+      />
+      <Tab.Screen
+        name="Logout"
+        component={DriverLogoutScreen}
+        options={{ title: 'Logout' }}
+      />
     </Tab.Navigator>
   );
 };
 
+// Main Navigation Component
 const Navigation = () => {
-  const { isLoggedIn } = useAuth();
-  const [selectedRole, setSelectedRole] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchRole = async () => {
-      const savedRole = await AsyncStorage.getItem('selectedRole');
-      if (savedRole) setSelectedRole(savedRole);
-      setIsLoading(false);
-    };
-
-    fetchRole();
-  }, []);
+  const { isLoggedIn, selectedRole, setSelectedRole } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSelectRole = async role => {
     await AsyncStorage.setItem('selectedRole', role);
     setSelectedRole(role);
   };
-
-  const handleResetRole = async () => {
-    await AsyncStorage.removeItem('selectedRole');
-    setSelectedRole(null);
-  };
-
-  if (isLoading) {
-    return null; // Add a SplashScreen component if desired
-  }
 
   return (
     <NavigationContainer>
@@ -78,10 +91,7 @@ const Navigation = () => {
               name="DriverLogin"
               component={DriverLoginScreen}
               options={{
-                title: 'Driver Login',
-                headerLeft: () => (
-                  <Button title="Back" onPress={handleResetRole} />
-                ),
+                headerShown: false,
               }}
             />
           )
