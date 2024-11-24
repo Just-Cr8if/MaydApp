@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, Text, Button } from 'react-native';
 
-const HomeScreen = ({ navigation }) => {
+const DriverHomeScreen = ({ navigation }) => {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Home Screen</Text>
+      <Text>DriverHomeScreen</Text>
       <Button
         title="Go to Details"
-        onPress={() => navigation.navigate('Details')}
+        onPress={() => navigation.navigate('DriverDetails')}
       />
     </View>
   );
 };
 
-export default HomeScreen;
+export default DriverHomeScreen;

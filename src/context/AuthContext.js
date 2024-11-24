@@ -6,7 +6,13 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const login = () => setIsLoggedIn(true);
-  const logout = () => setIsLoggedIn(false);
+  const logout = async () => {
+    // Clear authentication state
+    setIsLoggedIn(false);
+
+    // Remove role from AsyncStorage
+    await AsyncStorage.removeItem('selectedRole');
+  };
 
   return (
     <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
