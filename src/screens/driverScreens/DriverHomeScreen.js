@@ -84,6 +84,9 @@ const DriverHomeScreen = ({ navigation }) => {
           <Text style={styles.activeOrderInformation}>
             Collect Orders & Depart By: <Text style={styles.activeOrderImportant}>{activeOrder.formatted_scheduled_departure_time}</Text>
           </Text>
+          <Text>{activeOrder.distance} Miles</Text>
+          <Text>EST: {activeOrder.duration} Minutes</Text>
+          <Text>Tap the address to open directions</Text>
           <View style={styles.horizontalLine}></View>
           <FlatList
             data={activeOrder.orders}
@@ -198,12 +201,13 @@ const lightGrey = "#F1EFEF"
 const styles = StyleSheet.create({
   container: {
     paddingTop: 10,
-    paddingHorizontal: 10
+    paddingHorizontal: 10,
+    paddingBottom: 280
   },
   pageHeader: {
     fontSize: 22,
     fontWeight: '600',
-    marginVertical: 10
+    marginVertical: 5
   },
   hubContainer: {
     marginBottom: 30
@@ -241,9 +245,9 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   horizontalLine: {
-    height: 2,
+    height: .5,
     backgroundColor: 'lightgrey',
-    marginVertical: 10,
+    marginTop: 10,
   },
   customerOrderContainer: {
     borderBottomWidth: 1,
