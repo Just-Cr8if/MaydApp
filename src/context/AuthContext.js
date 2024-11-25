@@ -74,12 +74,54 @@ const fetchBatchedOrders = async (hubIds) => {
     const query = hubIds ? `?hub_ids=${hubIds.join(',')}` : '';
     const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/hubs/batched_orders/${query}`);
 
-    console.log(response.data)
-
     return response.data;
   } catch (error) {
     console.error('Error fetching batched orders:', error);
     throw error; // Propagate the error for handling
+  }
+};
+
+const createDriverBatchedOrder = async (driverId, batchedOrderId, networkHubId, status) => {
+  try {
+    // Construct the data object
+    const data = {
+      driver_id: driverId,
+      batched_order_id: batchedOrderId,
+      network_hub_id: networkHubId,
+      status,
+    };
+
+    // Make the API call
+    const response = await axios.post(`${PEGASUS_API_BASE_URL}/create_driver_batched_order/`, data);
+
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      // Server responded with a status other than 2xx
+      throw new Error(error.response.data.error || 'Failed to create order.');
+    } else {
+      // Network or other error
+      throw new Error('Network error. Please try again.');
+    }
+  }
+};
+
+const fetchDriverBatchedOrder = async (driverId) => {
+  try {
+    // Step 1: Fetch the active order for the driver from Pegasus
+    const pegasusResponse = await axios.get(`${PEGASUS_API_BASE_URL}/driver_active_order/${driverId}/`);
+    const { batched_order_id } = pegasusResponse.data;
+
+    if (!batched_order_id) {
+      throw new Error('No active batched order found for this driver.');
+    }
+
+    // Step 2: Fetch the batched order details from MobylMenu
+    const mobylmenuResponse = await axios.get(`${MOBYLMENU_API_BASE_URL}/batched_order/${batched_order_id}/`);
+    return mobylmenuResponse.data;
+  } catch (error) {
+    console.error('Error fetching driver batched order:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.error || 'Unable to fetch the driver batched order.');
   }
 };
 
@@ -92,7 +134,10 @@ const fetchBatchedOrders = async (hubIds) => {
       setSelectedRole,
       login, 
       logout,
-      fetchBatchedOrders }}>
+      fetchBatchedOrders,
+      createDriverBatchedOrder,
+      fetchDriverBatchedOrder,
+       }}>
       {children}
     </AuthContext.Provider>
   );
