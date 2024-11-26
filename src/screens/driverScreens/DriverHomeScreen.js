@@ -76,17 +76,19 @@ const DriverHomeScreen = ({ navigation }) => {
       {activeOrder ?
        // Active Order Screen
        <View style={styles.container}>
-        <Text style={styles.pageHeader}>Active Order</Text>
+        <View style={styles.row}>
+          <Text style={styles.pageHeader}>Active Orders <Text style={{ fontSize: 18 }}>({activeOrder.num_orders})</Text></Text>
+        </View>
         <View style={styles.orderDetails}>
           <Text style={styles.activeOrderInformation}>
-            {activeOrder.num_orders} {activeOrder.num_orders === 1 ? 'Order' : 'Orders'}
+            Collect & Depart By: <Text style={styles.activeOrderImportant}>{activeOrder.formatted_scheduled_departure_time}</Text>
           </Text>
-          <Text style={styles.activeOrderInformation}>
-            Collect Orders & Depart By: <Text style={styles.activeOrderImportant}>{activeOrder.formatted_scheduled_departure_time}</Text>
-          </Text>
-          <Text>{activeOrder.distance} Miles</Text>
-          <Text>EST: {activeOrder.duration} Minutes</Text>
-          <Text>Tap the address to open directions</Text>
+          <View style={styles.row}>
+            <Text style={styles.routeInfo}>{activeOrder.distance} Miles</Text>
+            <Text style={styles.routeInfo}>EST: {activeOrder.duration} Minutes</Text>
+          </View>
+          
+          <Text>{activeOrder.route_steps}</Text>
           <View style={styles.horizontalLine}></View>
           <FlatList
             data={activeOrder.orders}
@@ -126,10 +128,15 @@ const DriverHomeScreen = ({ navigation }) => {
                 </TouchableOpacity>
                 <Text style={styles.customerOrderTextBold}>Delivery/Parking Instructions</Text>
                 <Text style={styles.customerOrderText}>{customerOrder.delivery_details.driver_instructions}</Text>
-                <Image
-                  source={require('../../images/camera.png')}
-                  style={{ width: 30, height: 24, marginTop: 10, marginLeft: 10 }}
-                />
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Camera', { driverId: driverInfo?.user_id, orderIds: [customerOrder.id] })}
+                >
+                  <Image
+                    source={require('../../images/camera.png')}
+                    style={{ width: 30, height: 24, marginTop: 10, marginLeft: 10 }}
+                  />
+                </TouchableOpacity>
+                
               </View>
             )}
           />
@@ -204,10 +211,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingBottom: 280
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10
+  },
   pageHeader: {
     fontSize: 22,
-    fontWeight: '600',
-    marginVertical: 5
+    fontWeight: '600'
+  },
+  routeInfo: {
+    marginRight: 10,
+    fontSize: 15
   },
   hubContainer: {
     marginBottom: 30

@@ -12,6 +12,7 @@ import OrderDetailsScreen from '../screens/driverScreens/OrderDetailsScreen';
 import DriverDetailsScreen from '../screens/driverScreens/DriverDetailsScreen';
 import DriverLoginScreen from '../screens/driverScreens/DriverLoginScreen';
 import DriverLogoutScreen from '../screens/driverScreens/DriverLogoutScreen';
+import CameraScreen from '../screens/driverScreens/CameraScreen';
 import { useAuth } from '../context/AuthContext';
 
 const Stack = createStackNavigator();
@@ -24,6 +25,11 @@ const DriverHomeStackNavigator = () => {
       <Stack.Screen
         name="DriverHome"
         component={DriverHomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Camera"
+        component={CameraScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

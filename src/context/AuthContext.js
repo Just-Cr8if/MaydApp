@@ -106,6 +106,7 @@ const createDriverBatchedOrder = async (driverId, batchedOrderId, networkHubId, 
   }
 };
 
+
 const fetchDriverBatchedOrder = async (driverId) => {
   try {
     // Step 1: Fetch the active order for the driver from Pegasus
@@ -125,6 +126,38 @@ const fetchDriverBatchedOrder = async (driverId) => {
   }
 };
 
+
+// Function to upload a delivery photo and associate it with orders
+const uploadDeliveryPhoto = async (photoUri, driverId, orderIds) => {
+  try {
+    // Create a FormData object to handle file uploads
+    const formData = new FormData();
+    formData.append('photo', {
+      uri: photoUri,
+      name: `delivery_photo${driverId}.jpg`,
+      type: 'image/jpeg',
+    });
+    formData.append('driver_id', driverId); // Add driver ID
+    orderIds.forEach(orderId => formData.append('orders', orderId)); // Add associated order IDs
+
+    // Send the POST request
+    const response = await axios.post(
+      `${MOBYLMENU_API_BASE_URL}/delivery_photo/upload/`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    // Return the response data
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading delivery photo:', error);
+    throw error; // Propagate the error for handling
+  }
+};
+
   return (
     <AuthContext.Provider value={{ 
       isLoggedIn, 
@@ -137,6 +170,7 @@ const fetchDriverBatchedOrder = async (driverId) => {
       fetchBatchedOrders,
       createDriverBatchedOrder,
       fetchDriverBatchedOrder,
+      uploadDeliveryPhoto
        }}>
       {children}
     </AuthContext.Provider>
