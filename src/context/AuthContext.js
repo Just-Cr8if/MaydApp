@@ -3,6 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { PEGASUS_API_BASE_URL, MOBYLMENU_API_BASE_URL,
   ORS_MOBYLMENU_ROUTING_API_KEY } from '../config';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+import * as Device from 'expo-device';
+import { Platform } from 'react-native';
 
 const AuthContext = createContext();
 
@@ -158,6 +162,71 @@ const uploadDeliveryPhoto = async (photoUri, driverId, orderIds) => {
   }
 };
 
+const registerForPushNotificationsAsync = async () => {
+  let token;
+
+  // Check if the app is running on a physical device
+  if (Device.isDevice) {
+    // Get the current notification permissions
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    // Request permissions if not already granted
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    // Handle permission denial
+    if (finalStatus !== 'granted') {
+      alert('Failed to get push token for push notifications!');
+      return null;
+    }
+
+    // Get the Expo push token
+    token = (
+      await Notifications.getExpoPushTokenAsync({
+        projectId: 'f80cd51c-a83f-416c-9713-278a4bd014c4', // Replace with your actual Expo project ID
+      })
+    ).data;
+  } else {
+    alert('Must use a physical device for Push Notifications');
+    return null;
+  }
+
+  // Set notification channel for Android
+  if (Platform.OS === 'android') {
+    Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    });
+  }
+
+  return token;
+};
+
+const initializePushNotifications = async () => {
+  const expoPushToken = await registerForPushNotificationsAsync();
+
+  if (expoPushToken) {
+    // Update driverInfo with the push token
+    const updatedDriverInfo = { ...driverInfo, expoPushToken };
+    setDriverInfo(updatedDriverInfo);
+
+    // Save updated driverInfo to AsyncStorage
+    await AsyncStorage.setItem('driverInfo', JSON.stringify(updatedDriverInfo));
+
+    // Send the push token to the backend
+    await fetch(`${PEGASUS_API_BASE_URL}/drivers/update_profile/${driverInfo.id}/`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expo_push_token: expoPushToken }),
+    });
+  }
+};
+
   return (
     <AuthContext.Provider value={{ 
       isLoggedIn, 
@@ -170,7 +239,8 @@ const uploadDeliveryPhoto = async (photoUri, driverId, orderIds) => {
       fetchBatchedOrders,
       createDriverBatchedOrder,
       fetchDriverBatchedOrder,
-      uploadDeliveryPhoto
+      uploadDeliveryPhoto,
+      initializePushNotifications
        }}>
       {children}
     </AuthContext.Provider>

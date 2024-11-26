@@ -2,18 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView,
   FlatList, SafeAreaView, Alert, Linking, Image } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
-import Button from '../../components/buttons/Button';
+
 import ActionButton from '../../components/buttons/ActionButton';
-import PageLink from '../../components/links/PageLink';
 import { baseStyles, screenWidth } from '../../styles/baseStyles';
 
 const DriverHomeScreen = ({ navigation }) => {
   const { driverInfo, fetchBatchedOrders, createDriverBatchedOrder,
-    fetchDriverBatchedOrder
+    fetchDriverBatchedOrder, initializePushNotifications
    } = useAuth();
   const [ordersData, setOrdersData] = useState([]);
   const [activeOrder, setActiveOrder] = useState(null);
   const [loadingOrderId, setLoadingOrderId] = useState(null);
+
+  useEffect(() => {
+    if (driverInfo && !driverInfo.expoPushToken) {
+      initializePushNotifications();
+    }
+  }, [driverInfo]);
 
   useEffect(() => {
     const getOrders = async () => {
@@ -22,7 +27,6 @@ const DriverHomeScreen = ({ navigation }) => {
         if (driverInfo?.user_id) {
           const activeOrder = await fetchDriverBatchedOrder(driverInfo.user_id);
           if (activeOrder) {
-            console.log('Active Order Found:', activeOrder);
             setActiveOrder(activeOrder); // Assuming `setActiveOrder` is a state setter
             return; // Exit early since active orders are prioritized
           }
@@ -173,7 +177,6 @@ const DriverHomeScreen = ({ navigation }) => {
                       title="Accept"
                       onPress={async () => {
                         try {
-                          console.log('PRESSED');
                           const response = await createDriverBatchedOrder(
                             driverInfo?.user_id, // Driver ID
                             order.id, // Batched order ID
