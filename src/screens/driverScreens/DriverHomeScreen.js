@@ -28,7 +28,7 @@ const DriverHomeScreen = ({ navigation }) => {
           const activeOrder = await fetchDriverBatchedOrder(driverInfo.user_id);
           if (activeOrder) {
             setActiveOrder(activeOrder); // Assuming `setActiveOrder` is a state setter
-            return; // Exit early since active orders are prioritized
+            return;
           }
         }
   

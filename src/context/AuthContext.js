@@ -115,18 +115,22 @@ const fetchDriverBatchedOrder = async (driverId) => {
   try {
     // Step 1: Fetch the active order for the driver from Pegasus
     const pegasusResponse = await axios.get(`${PEGASUS_API_BASE_URL}/driver_active_order/${driverId}/`);
+    print('PEGASUS', pegasusResponse);
+    
     const { batched_order_id } = pegasusResponse.data;
 
+    print('BATCHEDID', batched_order_id);
+
     if (!batched_order_id) {
-      throw new Error('No active batched order found for this driver.');
+      return
     }
 
     // Step 2: Fetch the batched order details from MobylMenu
     const mobylmenuResponse = await axios.get(`${MOBYLMENU_API_BASE_URL}/batched_order/${batched_order_id}/`);
     return mobylmenuResponse.data;
   } catch (error) {
+    return null
     console.error('Error fetching driver batched order:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || 'Unable to fetch the driver batched order.');
   }
 };
 
