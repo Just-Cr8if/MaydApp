@@ -13,7 +13,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [driverInfo, setDriverInfo] = useState(null);
-  const [selectedRole, setSelectedRole] = useState(null);
+  const [selectedRole, setSelectedRole] = useState("Restaurant");
   const [isLoggingIn, setIsLoggingIn] = useState(null);
 
   useEffect(() => {
@@ -66,6 +66,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setIsLoggedIn(false);
     setDriverInfo(null);
+    setSelectedRole(null);
 
     await AsyncStorage.removeItem('driverInfo');
     await AsyncStorage.removeItem('selectedRole');

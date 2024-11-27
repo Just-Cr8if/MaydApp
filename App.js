@@ -1,11 +1,14 @@
 import React from 'react';
 import Navigation from './src/components/Navigation';
 import { AuthProvider } from './src/context/AuthContext';
+import { RestaurantProvider } from './src/context/RestaurantContext';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Navigation />
-    </AuthProvider>
+    <RestaurantProvider>
+      <AuthProvider>
+        <Navigation />
+      </AuthProvider>
+    </RestaurantProvider>
   );
 }
