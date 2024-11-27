@@ -35,10 +35,12 @@ export const RestaurantProvider = ({ children }) => {
             setRestaurantIsLoggedIn(true);
           };
           if (savedVenue) {
-            setVenue(savedVenue);
+            const parsedSavedVenue = JSON.parse(savedVenue)
+            setVenue(parsedSavedVenue);
           };
           if (savedRestaurantOrders) {
-            setRestaurantOrders(savedRestaurantOrders);
+            const parsedRestaurantOrders = JSON.parse(savedRestaurantOrders)
+            setRestaurantOrders(parsedRestaurantOrders);
           };
 
         }
@@ -58,9 +60,11 @@ export const RestaurantProvider = ({ children }) => {
     const limitedOrders = activeOrders.slice(0, 100);
 
     setRestaurantOrders(limitedOrders);
+
+    console.log('RESTAURNA', limitedOrders.length)
   
     // Save to AsyncStorage
-    await AsyncStorage.setItem('restaurantOrders', JSON.stringify(limitedOrders));
+    await AsyncStorage.setItem('restaurantOrders', limitedOrders);
   };  
 
   const restaurantLogin = async (username, password, venueId) => {
@@ -83,6 +87,7 @@ export const RestaurantProvider = ({ children }) => {
         await updateAsyncStorageOrders(restaurantData.orders);
   
         setVenue(restaurantData.venue);
+        await AsyncStorage.setItem('venue', JSON.stringify(restaurantData.venue));
   
         // Save other restaurant info
         await AsyncStorage.setItem('restaurantInfo', JSON.stringify(restaurantData));
