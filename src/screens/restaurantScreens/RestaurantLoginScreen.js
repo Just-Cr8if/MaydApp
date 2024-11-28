@@ -34,8 +34,6 @@ const RestaurantLoginScreen = ({navigation}) => {
         return () => clearTimeout(timeoutId);
     }, [errorMessage]);
 
-    console.log(password)
-
     const renderLoginForm = () => (
         <Animated.View style={styles.wrapper}>
           <Text style={styles.pageHeader}>Sign In</Text>

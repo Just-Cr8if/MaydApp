@@ -60,15 +60,12 @@ export const RestaurantProvider = ({ children }) => {
     const limitedOrders = activeOrders.slice(0, 100);
 
     setRestaurantOrders(limitedOrders);
-
-    console.log('RESTAURNA', limitedOrders.length)
   
     // Save to AsyncStorage
-    await AsyncStorage.setItem('restaurantOrders', limitedOrders);
+    await AsyncStorage.setItem('restaurantOrders', JSON.stringify(limitedOrders));
   };  
 
   const restaurantLogin = async (username, password, venueId) => {
-    console.log('TRIGGERED', username, password, venueId);
     setRestaurantIsLoggingIn(true);
   
     try {
@@ -179,6 +176,33 @@ const initializePushNotifications = async () => {
   }
 };
 
+const updateOrderStatus = (orderId, newStatus, declineNote = '') => {
+  console.log(orderId, newStatus, declineNote);
+  fetch(`${MOBYLMENU_API_BASE_URL}/orders/status/${orderId}/`, {
+      method: 'PATCH',
+      headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${restaurantInfo?.token}`,
+      },
+      body: JSON.stringify({ status: newStatus, decline_note: declineNote }),
+  })
+  .then((response) => {
+      if (!response.ok) {
+          console.error('Failed to update order status');
+      }
+  })
+  .catch((error) => console.error('Error updating order status:', error));
+
+  // Update local state
+  setRestaurantOrders((prevOrders) =>
+      prevOrders.map((order) =>
+          order.id === orderId
+              ? { ...order, status: newStatus, decline_note: newStatus === 'declined' ? declineNote : '' }
+              : order
+      )
+  );
+};
+
   return (
     <RestaurantContext.Provider value={{ 
       restaurantIsLoggedIn, 
@@ -191,7 +215,10 @@ const initializePushNotifications = async () => {
       errorMessage,
       setErrorMessage,
       venue,
-      restaurantOrders
+      restaurantOrders,
+      setRestaurantOrders,
+      updateAsyncStorageOrders,
+      updateOrderStatus
        }}>
       {children}
     </RestaurantContext.Provider>

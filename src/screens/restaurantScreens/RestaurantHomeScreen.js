@@ -1,25 +1,68 @@
 import React, { useContext, useState, useEffect, useMemo } from "react";
 import { View, Text, Button, Pressable, TouchableOpacity, Animated,
     StyleSheet, FlatList, SafeAreaView, Image, Appearance, useColorScheme,
-  Dimensions } from 'react-native';
+  Dimensions, Modal, TextInput
+ } from 'react-native';
 import { useRestaurantAuth } from "../../context/RestaurantContext";
 import SwipeableItem from 'react-native-swipeable-item';
+import RNEventSource from "react-native-event-source";
+import { MOBYLMENU_API_BASE_URL } from "../../config";
 
 
 const RestaurantHomeScreen = ({ navigation }) => {
-    const { venue, restaurantOrders } = useRestaurantAuth();
+    const { venue, restaurantOrders, setRestaurantOrders, updateAsyncStorageOrders,
+        updateOrderStatus
+     } = useRestaurantAuth();
     const [orderType, setOrderType] = useState('All');
     const [selectedOrderId, setSelectedOrderId] = useState(null); // Track selected order
     const [kitchenView, setKitchenView] = useState(false); // Track Kitchen View toggle
     const { width } = Dimensions.get('window');
     const isLargeScreen = width >= 768;
+    const [isDeclineModalVisible, setDeclineModalVisible] = useState(false);
+    const [declineReason, setDeclineReason] = useState('');
+    const [declineOrderId, setDeclineOrderId] = useState(null);
+    
+    useEffect(() => {
+        // Initialize the SSE connection
+        const eventSource = new RNEventSource(`${MOBYLMENU_API_BASE_URL}/sse/`, {
+            headers: {
+                Connection: "keep-alive",
+                "Content-Type": "application/json",
+                "Cache-Control": "no-cache",
+                "Access-Control-Allow-Origin": "*",
+            },
+        });
+
+        // Listen for incoming messages
+        eventSource.addEventListener("message", (event) => {
+            const newOrder = JSON.parse(event.data);
+        
+            // Update the state and async storage
+            setRestaurantOrders((prevOrders) => {
+                const updatedOrders = [...prevOrders, newOrder]; // Create the updated list
+                updateAsyncStorageOrders(updatedOrders); // Pass the updated list
+                return updatedOrders; // Update the state with the new list
+            });
+        });        
+
+        // Handle connection errors
+        eventSource.onerror = (error) => {
+            console.error("SSE Error:", error.message || error);
+        };
+
+        // Cleanup the connection when the component unmounts
+        return () => {
+            console.log("Closing SSE Connection");
+            eventSource.close();
+        };
+    }, []);
 
     // Memoized counts for each order type
     const orderCounts = useMemo(() => {
         const counts = {
             New: restaurantOrders.filter((order) => order.status === 'submitted').length,
             Open: restaurantOrders.filter((order) => order.status === 'accepted').length,
-            Closed: restaurantOrders.filter((order) => order.status === 'closed').length,
+            Closed: restaurantOrders.filter((order) => ['closed', 'declined'].includes(order.status)).length,
         };
         return counts;
     }, [restaurantOrders]);
@@ -31,20 +74,41 @@ const RestaurantHomeScreen = ({ navigation }) => {
         } else if (orderType === 'Open') {
             return restaurantOrders.filter((order) => order.status === 'accepted');
         } else if (orderType === 'Closed') {
-            return restaurantOrders.filter((order) => order.status === 'closed');
+            return restaurantOrders.filter((order) => ['closed', 'declined'].includes(order.status));
         }
-        return restaurantOrders; // Show all orders for 'All'
+        return restaurantOrders.filter((order) => order.status === 'submitted');
     }, [orderType, restaurantOrders]);
 
     const handleAccept = (orderId) => {
         console.log('accepted', orderId);
-        // Update order status or make an API call here
+        updateOrderStatus(orderId, 'accepted');
       };
       
       const handleDecline = (orderId) => {
-        console.log('declined', orderId);
-        // Update order status or make an API call here
+        setDeclineOrderId(orderId)
+        setDeclineModalVisible(true);
       };
+
+      const confirmDecline = () => {
+        console.log('Declined Order ID:', declineOrderId);
+        console.log('Reason:', declineReason);
+
+        // Call the function to update the order
+        updateOrderStatus(declineOrderId, 'declined', declineReason);
+
+        // Reset state and close modal
+        setDeclineModalVisible(false);
+        setDeclineReason('');
+        setDeclineOrderId(null);
+        
+    };
+
+    const cancelDecline = () => {
+        // Close the modal and reset state
+        setDeclineModalVisible(false);
+        setDeclineReason('');
+        setSelectedOrderId(null);
+    };
       
 
       const LeftUnderlay = ({ onPress }) => (
@@ -61,74 +125,143 @@ const RestaurantHomeScreen = ({ navigation }) => {
           >
             <Text style={styles.actionText}>Decline</Text>
           </TouchableOpacity>
-      );
-      
-            
+      );    
 
       const renderOrder = ({ item }) => {
         const isSelected = selectedOrderId === item.id;
-      
-        return (
-          <SwipeableItem
-            key={item.id}
-            item={item}
-            overSwipe={20}
-            snapPointsLeft={[100]}
-            snapPointsRight={[100]}
-            renderUnderlayLeft={() => (
-              <LeftUnderlay onPress={() => handleAccept(item.id)} />
-            )}
-            renderUnderlayRight={() => (
-              <RightUnderlay onPress={() => handleDecline(item.id)} />
-            )}
-          >
+    
+        // Check if swiping should be disabled
+        const isSwipeDisabled = item.status === 'closed' || item.status === 'declined';
+    
+        return isSwipeDisabled ? (
+            // Render without swiping functionality
             <Pressable
-              style={styles.orderContainer}
-              onPress={() =>
-                !kitchenView && setSelectedOrderId(isSelected ? null : item.id)
-              }
+                style={styles.orderContainer}
+                onPress={() =>
+                    !kitchenView && setSelectedOrderId(isSelected ? null : item.id)
+                }
             >
-              {/* Your existing order item code */}
-              <Text style={styles.customerName}>Customer: {item.customer_name}</Text>
-              <Text style={styles.submittedTime}>
-                Time:{' '}
-                {new Date(item.submitted_timestamp).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </Text>
-              {(kitchenView || isSelected) && (
-                <View style={styles.orderDetails}>
-                  <Text style={styles.orderStatus}>Status: {item.status}</Text>
-                  {item.order_items?.map((orderItem) => (
-                    <View key={orderItem.id} style={styles.orderItem}>
-                      <Image
-                        source={{ uri: orderItem.menu_item.picture }}
-                        style={styles.orderImage}
-                      />
-                      <View>
-                        <Text style={styles.itemName}>
-                          {orderItem.menu_item.name}
-                        </Text>
-                        <Text style={styles.itemPrice}>
-                          Price: ${orderItem.menu_item.price}
-                        </Text>
-                        <Text style={styles.itemDescription}>
-                          {orderItem.menu_item.description}
-                        </Text>
-                      </View>
+                <Text style={styles.customerName}>Customer: {item.customer_name}</Text>
+                <Text style={styles.submittedTime}>
+                    Time:{' '}
+                    {new Date(item.submitted_timestamp).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    })}
+                </Text>
+                {(kitchenView || isSelected) && (
+                    <View style={styles.orderDetails}>
+                        <Text style={styles.orderStatus}>Status: {item.status}</Text>
+                        {item.order_items?.map((orderItem) => (
+                            <View key={orderItem.id} style={styles.orderItem}>
+                                <Image
+                                    source={{ uri: orderItem.menu_item.picture }}
+                                    style={styles.orderImage}
+                                />
+                                <View>
+                                    <Text style={styles.itemName}>
+                                        {orderItem.menu_item.name}
+                                    </Text>
+                                    <Text style={styles.itemPrice}>
+                                        Price: ${orderItem.menu_item.price}
+                                    </Text>
+                                    <Text style={styles.itemDescription}>
+                                        {orderItem.menu_item.description}
+                                    </Text>
+                                </View>
+                            </View>
+                        ))}
                     </View>
-                  ))}
-                </View>
-              )}
+                )}
             </Pressable>
-          </SwipeableItem>
+        ) : (
+            // Render with swiping functionality
+            <SwipeableItem
+                key={item.id}
+                item={item}
+                overSwipe={20}
+                snapPointsLeft={[100]}
+                snapPointsRight={[100]}
+                renderUnderlayLeft={() => (
+                    <LeftUnderlay onPress={() => handleAccept(item.id)} />
+                )}
+                renderUnderlayRight={() => (
+                    <RightUnderlay onPress={() => handleDecline(item.id)} />
+                )}
+            >
+                <Pressable
+                    style={styles.orderContainer}
+                    onPress={() =>
+                        !kitchenView && setSelectedOrderId(isSelected ? null : item.id)
+                    }
+                >
+                    <Text style={styles.customerName}>Customer: {item.customer_name}</Text>
+                    <Text style={styles.submittedTime}>
+                        Time:{' '}
+                        {new Date(item.submitted_timestamp).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                        })}
+                    </Text>
+                    {(kitchenView || isSelected) && (
+                        <View style={styles.orderDetails}>
+                            <Text style={styles.orderStatus}>Status: {item.status}</Text>
+                            {item.order_items?.map((orderItem) => (
+                                <View key={orderItem.id} style={styles.orderItem}>
+                                    <Image
+                                        source={{ uri: orderItem.menu_item.picture }}
+                                        style={styles.orderImage}
+                                    />
+                                    <View>
+                                        <Text style={styles.itemName}>
+                                            {orderItem.menu_item.name}
+                                        </Text>
+                                        <Text style={styles.itemPrice}>
+                                            Price: ${orderItem.menu_item.price}
+                                        </Text>
+                                        <Text style={styles.itemDescription}>
+                                            {orderItem.menu_item.description}
+                                        </Text>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+                </Pressable>
+            </SwipeableItem>
         );
-      };
+    };    
 
     return (
         <View style={styles.container}>
             <SafeAreaView>
+                {/* Decline Modal */}
+            <Modal
+                visible={isDeclineModalVisible}
+                transparent={true}
+                animationType="slide"
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Are you sure you want to decline?</Text>
+                        <Text style={styles.modalSubtitle}>This cannot be undone. Let the customer know why:</Text>
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Enter reason for declining..."
+                            value={declineReason}
+                            onChangeText={setDeclineReason}
+                        />
+                        <View style={styles.buttonRow}>
+                            <Button title="Cancel" onPress={cancelDecline} />
+                            <Button
+                                title="Confirm"
+                                onPress={confirmDecline}
+                                disabled={!declineReason.trim()} // Disable if no reason
+                            />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
                 <Text style={styles.venueName}>{venue?.venue_name}</Text>
                 <View style={styles.orderHeaderContainer}>
                     <TouchableOpacity
@@ -266,10 +399,9 @@ const styles = StyleSheet.create({
     underlayAction: {
         justifyContent: 'center',
         paddingHorizontal: 20,
-        minHeight: 80,
         borderRadius: 8,
         marginVertical: 8,
-        
+        flex: 1
       },
       alignLeft: {
         alignItems: 'flex-end',
@@ -321,5 +453,42 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#666',
         width: 300
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        width: '80%',
+        padding: 20,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    modalSubtitle: {
+        fontSize: 14,
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    textInput: {
+        width: '100%',
+        height: 40,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 5,
+        marginBottom: 20,
+        paddingHorizontal: 10,
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
     },
 });
