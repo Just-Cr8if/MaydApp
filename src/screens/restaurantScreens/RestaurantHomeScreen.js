@@ -52,7 +52,6 @@ const RestaurantHomeScreen = ({ navigation }) => {
 
         // Cleanup the connection when the component unmounts
         return () => {
-            console.log("Closing SSE Connection");
             eventSource.close();
         };
     }, []);
@@ -79,20 +78,32 @@ const RestaurantHomeScreen = ({ navigation }) => {
         return restaurantOrders.filter((order) => order.status === 'submitted');
     }, [orderType, restaurantOrders]);
 
+    const transformOrderType = (item) => {
+        if (item.order_type === 'pick_up') {
+            return 'Pick Up';
+        } else if (item.order_type === 'delivery') {
+            return 'Delivery';
+        } else if (item.order_type === 'table' && item.table) {
+            return `Table #${item.table.table_number}`;
+        }
+        return item.order_type; // Fallback in case order_type doesn't match
+    };
+    
+
     const handleAccept = (orderId) => {
-        console.log('accepted', orderId);
         updateOrderStatus(orderId, 'accepted');
       };
       
-      const handleDecline = (orderId) => {
+    const handleDecline = (orderId) => {
         setDeclineOrderId(orderId)
         setDeclineModalVisible(true);
-      };
+    };
 
-      const confirmDecline = () => {
-        console.log('Declined Order ID:', declineOrderId);
-        console.log('Reason:', declineReason);
+    const handleClose = (orderId) => {
+        updateOrderStatus(orderId, 'closed');
+    };
 
+    const confirmDecline = () => {
         // Call the function to update the order
         updateOrderStatus(declineOrderId, 'declined', declineReason);
 
@@ -100,7 +111,6 @@ const RestaurantHomeScreen = ({ navigation }) => {
         setDeclineModalVisible(false);
         setDeclineReason('');
         setDeclineOrderId(null);
-        
     };
 
     const cancelDecline = () => {
@@ -109,85 +119,112 @@ const RestaurantHomeScreen = ({ navigation }) => {
         setDeclineReason('');
         setSelectedOrderId(null);
     };
-      
 
       const LeftUnderlay = ({ onPress }) => (
           <TouchableOpacity onPress={onPress}
-            style={[styles.underlayAction, styles.alignLeft, { backgroundColor: 'green' }]}
+            style={[styles.underlayAction, styles.alignLeft, { backgroundColor: green }]}
           >
             <Text style={styles.actionText}>Accept</Text>
           </TouchableOpacity>
       );
+
+      const LeftCloseUnderlay = ({ onPress }) => (
+        <TouchableOpacity onPress={onPress}
+          style={[styles.underlayAction, styles.alignLeft, { backgroundColor: mainColor }]}
+        >
+          <Text style={styles.actionText}>Close</Text>
+        </TouchableOpacity>
+    );
       
       const RightUnderlay = ({ onPress }) => (
           <TouchableOpacity onPress={onPress}
-          style={[styles.underlayAction, styles.alignRight, { backgroundColor: 'red' }]}
+          style={[styles.underlayAction, styles.alignRight, { backgroundColor: red }]}
           >
             <Text style={styles.actionText}>Decline</Text>
           </TouchableOpacity>
-      );    
+      );
+
+      const renderEmptyComponent = () => (
+        <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No orders here yet.</Text>
+        </View>
+        );
+
+        console.log(restaurantOrders[3]);
 
       const renderOrder = ({ item }) => {
         const isSelected = selectedOrderId === item.id;
     
-        // Check if swiping should be disabled
+        // Conditions for swiping behavior
         const isSwipeDisabled = item.status === 'closed' || item.status === 'declined';
+        const isSwipeRestrictedToClose = item.status === 'accepted';
     
-        return isSwipeDisabled ? (
+        if (isSwipeDisabled) {
             // Render without swiping functionality
-            <Pressable
-                style={styles.orderContainer}
-                onPress={() =>
-                    !kitchenView && setSelectedOrderId(isSelected ? null : item.id)
-                }
-            >
-                <Text style={styles.customerName}>Customer: {item.customer_name}</Text>
-                <Text style={styles.submittedTime}>
-                    Time:{' '}
-                    {new Date(item.submitted_timestamp).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                    })}
-                </Text>
-                {(kitchenView || isSelected) && (
-                    <View style={styles.orderDetails}>
-                        <Text style={styles.orderStatus}>Status: {item.status}</Text>
-                        {item.order_items?.map((orderItem) => (
-                            <View key={orderItem.id} style={styles.orderItem}>
-                                <Image
-                                    source={{ uri: orderItem.menu_item.picture }}
-                                    style={styles.orderImage}
-                                />
-                                <View>
-                                    <Text style={styles.itemName}>
-                                        {orderItem.menu_item.name}
-                                    </Text>
-                                    <Text style={styles.itemPrice}>
-                                        Price: ${orderItem.menu_item.price}
-                                    </Text>
-                                    <Text style={styles.itemDescription}>
-                                        {orderItem.menu_item.description}
-                                    </Text>
-                                </View>
-                            </View>
-                        ))}
+            return (
+                <Pressable
+                    style={styles.orderContainer}
+                    onPress={() =>
+                        !kitchenView && setSelectedOrderId(isSelected ? null : item.id)
+                    }
+                >
+                    <View style={{ flexDirection: 'row' }}>
+                        <Text style={[styles.customerName, { marginRight:10 }]}>{transformOrderType(item)}</Text>
+                        <Text style={styles.customerName}>{item.customer_name}</Text>
                     </View>
-                )}
-            </Pressable>
-        ) : (
-            // Render with swiping functionality
+                    <Text style={styles.submittedTime}>
+                        Order Placed:{' '}
+                        {new Date(item.submitted_timestamp).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                        })}
+                    </Text>
+                    {(kitchenView || isSelected) && (
+                        <View style={styles.orderDetails}>
+                            <Text style={styles.orderStatus}>Status: {item.status}</Text>
+                            {item.order_items?.map((orderItem) => (
+                                <View key={orderItem.id} style={styles.orderItem}>
+                                    <Image
+                                        source={{ uri: orderItem.menu_item.picture }}
+                                        style={styles.orderImage}
+                                    />
+                                    <View>
+                                        <Text style={styles.itemName}>
+                                            {orderItem.menu_item.name}
+                                        </Text>
+                                        <Text style={styles.itemPrice}>
+                                            Price: ${orderItem.menu_item.price}
+                                        </Text>
+                                        <Text style={styles.itemDescription}>
+                                            {orderItem.menu_item.description}
+                                        </Text>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+                </Pressable>
+            );
+        }
+    
+        // Render SwipeableItem for other statuses
+        return (
             <SwipeableItem
                 key={item.id}
                 item={item}
                 overSwipe={20}
-                snapPointsLeft={[100]}
-                snapPointsRight={[100]}
-                renderUnderlayLeft={() => (
-                    <LeftUnderlay onPress={() => handleAccept(item.id)} />
-                )}
-                renderUnderlayRight={() => (
-                    <RightUnderlay onPress={() => handleDecline(item.id)} />
-                )}
+                snapPointsLeft={isSwipeRestrictedToClose ? [100] : [100]} // Left swipe for "close" when accepted
+                snapPointsRight={!isSwipeRestrictedToClose ? [100] : []} // Disable right swipe for "accepted"
+                renderUnderlayLeft={
+                    isSwipeRestrictedToClose
+                        ? () => <LeftCloseUnderlay onPress={() => handleClose(item.id)} />
+                        : () => <LeftUnderlay onPress={() => handleAccept(item.id)} />
+                }
+                renderUnderlayRight={
+                    !isSwipeRestrictedToClose
+                        ? () => <RightUnderlay onPress={() => handleDecline(item.id)} />
+                        : undefined
+                }
             >
                 <Pressable
                     style={styles.orderContainer}
@@ -195,9 +232,12 @@ const RestaurantHomeScreen = ({ navigation }) => {
                         !kitchenView && setSelectedOrderId(isSelected ? null : item.id)
                     }
                 >
-                    <Text style={styles.customerName}>Customer: {item.customer_name}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={[styles.customerName, { marginRight:10 }]}>{transformOrderType(item)}</Text>
+                        <Text style={styles.customerName}>{item.customer_name}</Text>
+                    </View>
                     <Text style={styles.submittedTime}>
-                        Time:{' '}
+                        Order Placed:{' '}
                         {new Date(item.submitted_timestamp).toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -230,12 +270,12 @@ const RestaurantHomeScreen = ({ navigation }) => {
                 </Pressable>
             </SwipeableItem>
         );
-    };    
+    };
+           
 
     return (
         <View style={styles.container}>
             <SafeAreaView>
-                {/* Decline Modal */}
             <Modal
                 visible={isDeclineModalVisible}
                 transparent={true}
@@ -268,21 +308,21 @@ const RestaurantHomeScreen = ({ navigation }) => {
                         style={styles.orderHeaderButton}
                         onPress={() => setOrderType('New')}
                     >
-                        <Text style={[styles.orderButtonText, { color: 'green' }]}>New Orders</Text>
+                        <Text style={[styles.orderButtonText, { color: green }]}>New Orders</Text>
                         <Text style={styles.numOrderText}>{orderCounts.New}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.orderHeaderButton}
                         onPress={() => setOrderType('Open')}
                     >
-                        <Text style={[styles.orderButtonText, { color: 'blue' }]}>Open Orders</Text>
+                        <Text style={[styles.orderButtonText, { color: mainColor }]}>Open Orders</Text>
                         <Text style={styles.numOrderText}>{orderCounts.Open}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.orderHeaderButton}
                         onPress={() => setOrderType('Closed')}
                     >
-                        <Text style={[styles.orderButtonText, { color: 'red' }]}>Closed Orders</Text>
+                        <Text style={[styles.orderButtonText, { color: red }]}>Closed Orders</Text>
                         <Text style={styles.numOrderText}>{orderCounts.Closed}</Text>
                     </TouchableOpacity>
                 </View>
@@ -301,6 +341,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={renderOrder}
                     contentContainerStyle={styles.listContainer}
+                    ListEmptyComponent={renderEmptyComponent}
                 />
 
             </SafeAreaView>
@@ -313,9 +354,9 @@ export default RestaurantHomeScreen;
 const mainColor = "#00A6FF"
 const mainColorO = "rgba(0, 166, 255, 0.5)";
 const mint = "#3EB489";
-const green = "green";
+const green = "#32B53D";
 const orange = "orange";
-const red = "red";
+const red = "#FF0B0B";
 const darkColor = "#202124";
 const charcoal = "#36454F";
 const lightgrey = "#E5E4E2";
@@ -490,5 +531,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    emptyText: {
+        fontSize: 16,
+        color: 'gray',
     },
 });

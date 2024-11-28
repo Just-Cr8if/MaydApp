@@ -53,11 +53,8 @@ export const RestaurantProvider = ({ children }) => {
   }, []);
 
   const updateAsyncStorageOrders = async (orders) => {
-    // Filter only active orders (example: status is not 'closed')
-    const activeOrders = orders.filter(order => order.status !== 'closed');
-  
     // Keep only the latest 100 orders if the number exceeds 100
-    const limitedOrders = activeOrders.slice(0, 100);
+    const limitedOrders = orders.slice(0, 100);
 
     setRestaurantOrders(limitedOrders);
   
@@ -178,6 +175,7 @@ const initializePushNotifications = async () => {
 
 const updateOrderStatus = (orderId, newStatus, declineNote = '') => {
   console.log(orderId, newStatus, declineNote);
+
   fetch(`${MOBYLMENU_API_BASE_URL}/orders/status/${orderId}/`, {
       method: 'PATCH',
       headers: {
@@ -193,14 +191,19 @@ const updateOrderStatus = (orderId, newStatus, declineNote = '') => {
   })
   .catch((error) => console.error('Error updating order status:', error));
 
-  // Update local state
-  setRestaurantOrders((prevOrders) =>
-      prevOrders.map((order) =>
+  // Update local state and then update AsyncStorage
+  setRestaurantOrders((prevOrders) => {
+      const updatedOrders = prevOrders.map((order) =>
           order.id === orderId
               ? { ...order, status: newStatus, decline_note: newStatus === 'declined' ? declineNote : '' }
               : order
-      )
-  );
+      );
+
+      // Update AsyncStorage after the state update
+      updateAsyncStorageOrders(updatedOrders);
+
+      return updatedOrders;
+  });
 };
 
   return (
