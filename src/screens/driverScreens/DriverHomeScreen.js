@@ -20,6 +20,8 @@ const DriverHomeScreen = ({ navigation }) => {
     }
   }, [driverInfo]);
 
+  console.log(ordersData)
+
   useEffect(() => {
     const getOrders = async () => {
       try {

@@ -16,6 +16,8 @@ import CameraScreen from '../screens/driverScreens/CameraScreen';
 
 import RestaurantLoginScreen from '../screens/restaurantScreens/RestaurantLoginScreen';
 import RestaurantHomeScreen from '../screens/restaurantScreens/RestaurantHomeScreen';
+import RestaurantMenuItemScreen from '../screens/restaurantScreens/RestaurantMenuItemScreen';
+import RestaurantOrderScreen from '../screens/restaurantScreens/RestaurantOrderScreen';
 import RestaurantSettingsScreen from '../screens/restaurantScreens/RestaurantSettingsScreen';
 
 import { useAuth } from '../context/AuthContext';
@@ -70,8 +72,7 @@ const DriverTabNavigator = () => {
   );
 };
 
-// Stack Navigator for DriverHome and OrderDetails
-const RestaurantStackNavigator = () => {
+const RestaurantHomeStackNavigator = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -80,27 +81,40 @@ const RestaurantStackNavigator = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="RestaurantSettings"
-        component={RestaurantSettingsScreen}
-        options={{ title: 'Restaurant Settings' }}
+        name="RestaurantMenuItem"
+        component={RestaurantMenuItemScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
 };
 
-// Tab Navigator for the main driver sections
 const RestaurantTabNavigator = () => {
   return (
     <Tab.Navigator>
       <Tab.Screen
-        name="RestaurantStack"
-        component={RestaurantStackNavigator}
-        options={{ headerShown: false }}
+        name="Home"
+        component={RestaurantHomeStackNavigator}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Home'
+        }}
       />
       <Tab.Screen
-        name="RestaurantSettings"
+        name="Orders"
+        component={RestaurantOrderScreen}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Orders'
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
         component={RestaurantSettingsScreen}
-        options={{ title: 'Logout' }}
+        options={{
+          title: 'Settings',
+          tabBarLabel: 'Logout'
+        }}
       />
     </Tab.Navigator>
   );

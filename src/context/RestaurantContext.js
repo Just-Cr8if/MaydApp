@@ -17,6 +17,8 @@ export const RestaurantProvider = ({ children }) => {
   const [restaurantIsLoggingIn, setRestaurantIsLoggingIn] = useState(null);
   const [restaurantOrders, setRestaurantOrders] = useState([]);
   const [venue, setVenue] = useState(null);
+  const [menuItemsLoading, setMenuItemsLoading] = useState(false);
+  const [displayedMenuItems, setDisplayedMenuItems] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
@@ -94,6 +96,24 @@ export const RestaurantProvider = ({ children }) => {
       setRestaurantIsLoggingIn(false);
       setErrorMessage("Invalid credentials. Check your email, password, and venue ID.");
       return;
+    }
+  };
+
+  const getMenuItems = async (venue) => {
+    if (!venue || !venue.id) {
+        return null;
+    }
+    setMenuItemsLoading(true);
+    try {
+        const res = await axios.get(`${MOBYLMENU_API_BASE_URL}/get_menu_items/${venue.id}/`);
+        const response = res.data;
+        setMenuItemsLoading(false);
+        setDisplayedMenuItems(response);
+        return response;
+    } catch (err) {
+        console.log(`Error getting menuItems: ${err}`);
+        setMenuItemsLoading(false);
+        return null;
     }
   };
   
@@ -174,7 +194,6 @@ const initializePushNotifications = async () => {
 };
 
 const updateOrderStatus = (orderId, newStatus, declineNote = '') => {
-  console.log(orderId, newStatus, declineNote);
 
   fetch(`${MOBYLMENU_API_BASE_URL}/orders/status/${orderId}/`, {
       method: 'PATCH',
@@ -221,7 +240,9 @@ const updateOrderStatus = (orderId, newStatus, declineNote = '') => {
       restaurantOrders,
       setRestaurantOrders,
       updateAsyncStorageOrders,
-      updateOrderStatus
+      updateOrderStatus,
+      getMenuItems,
+      displayedMenuItems
        }}>
       {children}
     </RestaurantContext.Provider>
