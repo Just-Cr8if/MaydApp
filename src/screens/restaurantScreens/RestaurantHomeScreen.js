@@ -1,81 +1,166 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
-import { View, Text, Button, TextInput, TouchableOpacity, Animated,
+import { View, Text, Pressable, TextInput, TouchableOpacity, Animated,
     StyleSheet, FlatList, SafeAreaView, Image, Appearance, useColorScheme,
-  Dimensions } from 'react-native';
+  Dimensions, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useRestaurantAuth } from "../../context/RestaurantContext";
 import LottieLoadingAnimation from '../../components/animations/LottieLoadingAnimation';
 import LargeButton from "../../components/buttons/LargeButton";
+import SwipeableItem from 'react-native-swipeable-item';
+import Button from "../../components/buttons/Button";
 
 
 const RestaurantHomeScreen = ({ navigation }) => {
-    const {
-      venue,
-      restaurantOrders,
-      setRestaurantOrders,
-      updateAsyncStorageOrders,
-      updateOrderStatus,
-      getMenuItems,
-      displayedMenuItems,
+    const { venue, restaurantOrders, setRestaurantOrders, updateAsyncStorageOrders,
+        updateOrderStatus, getMenuItems, displayedMenuItems,
+        getOtherMenus, getOtherMenuItems, setDisplayedMenuItems,
+        menus, setMenus, deleteMenuItem
     } = useRestaurantAuth();
   
     const { width } = Dimensions.get('window');
     const isLargeScreen = width >= 768;
-    const [restaurantCategories, setRestaurantCategories] = useState([]);
-    const nav = useNavigation()
-  
-    // Group items by category
-    const groupItemsByCategory = (items) => {
-        if (!items || items.length === 0) return []; // Handle undefined or empty array
-        const groupedItems = [];
-        let currentCategory = null;
+    const nav = useNavigation();
+    const [selectedMenu, setSelectedMenu] = useState(venue?.menu);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [itemIdToDelete, setItemIdToDelete] = useState(null);
+
+    // Populate menus with the venue's menu and fetched other menus
+    useEffect(() => {
+        const fetchMenus = async () => {
+        try {
+            if (venue?.menu) {
+            const fetchedOtherMenus = await getOtherMenus(venue);
+            setMenus([venue.menu, ...fetchedOtherMenus]);
+            setSelectedMenu(venue.menu);
+            }
+        } catch (error) {
+            console.error('Error fetching menus:', error);
+        }
+        };
+
+        fetchMenus();
+    }, [venue]);
+
+    // Populate menus with the venue's menu and fetched other menus
+    useEffect(() => {
+
+    }, [menus]);
     
-        items.forEach((item) => {
-          if (item.item_type !== currentCategory) {
-            currentCategory = item.item_type;
-            groupedItems.push({ type: 'header', category: currentCategory });
-          }
-          groupedItems.push({ type: 'item', data: item });
-        });
-    
-        return groupedItems;
+    const RightUnderlay = ({ onPress }) => (
+        <TouchableOpacity onPress={onPress}
+        style={[styles.underlayAction, styles.alignRight, { backgroundColor: red }]}
+        >
+            <Text style={styles.actionText}>Delete</Text>
+        </TouchableOpacity>
+    );
+
+    const handleDelete = (itemId) => {
+        setItemIdToDelete(itemId);
+        setIsDeleteModalVisible(true);
       };
+
+    const confirmDelete = () => {
+        deleteMenuItem(itemIdToDelete);
+        setItemIdToDelete(null);
+        setIsDeleteModalVisible(false);
+    };
+
+    const cancelDelete = () => {
+        setItemIdToDelete(null);
+        setIsDeleteModalVisible(false);
+    };
+
+    // Handle menu selection
+    const handleMenuSelect = async (menu) => {
+        try {
+        setSelectedMenu(menu);
+        await getOtherMenuItems(menu);
+        } catch (error) {
+        console.error('Error selecting menu:', error);
+        }
+    };
+
+    // Extract unique categories from displayedMenuItems
+    const extractCategories = (itemsObj) => {
+        if (!itemsObj || typeof itemsObj !== 'object' || Object.keys(itemsObj).length === 0) {
+        return []; // Return an empty array if itemsObj is undefined, not an object, or empty
+        }
+    
+        const items = Object.values(itemsObj); // Convert object to array of items
+    
+        const uniqueCategories = [...new Set(items.map((item) => item.item_type))]; // Extract unique categories
+        return uniqueCategories.filter(Boolean); // Remove null or undefined categories
+    };
+    
+    // Safely initialize categories
+    const categories = extractCategories(displayedMenuItems); // Use extractCategories directly
+
+    // Group items by category
+    const groupItemsByCategory = (itemsObj) => {
+      if (!itemsObj || Object.keys(itemsObj).length === 0) return []; // Handle undefined or empty object
+  
+      const items = Object.values(itemsObj); // Convert the object to an array
+      const groupedItems = [];
+  
+      // Group items by their category
+      const categoryMap = items.reduce((acc, item) => {
+        if (!acc[item.item_type]) {
+          acc[item.item_type] = [];
+        }
+        acc[item.item_type].push(item);
+        return acc;
+      }, {});
+  
+      // Create a grouped structure with headers and items
+      Object.entries(categoryMap).forEach(([category, items]) => {
+        groupedItems.push({ type: 'header', category }); // Add the category header
+        items.forEach((item) => {
+          groupedItems.push({ type: 'item', data: item }); // Add the items under the category
+        });
+      });
+  
+      return groupedItems;
+    };
   
     const MenuItemCard = ({ item }) => {
       return (
-        <TouchableOpacity
-            onPress={() => nav.navigate('RestaurantMenuItem', { menuItem: item })}
+        <SwipeableItem
+            key={item.id}
+            item={item}
+            overSwipe={20}
+            snapPointsRight={[100]}
+            renderUnderlayRight={() => (
+                <RightUnderlay onPress={() => handleDelete(item.id)} />
+            )}
         >
-        <View style={styles.card}>
-          <View style={styles.details}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.description} numberOfLines={2}>
-              {item.description}
-            </Text>
-            <Text style={styles.price}>${item.price}</Text>
-          </View>
-        </View>
-        </TouchableOpacity>
+            <Pressable
+                style={[
+                    styles.card
+                ]}
+                onPress={() => nav.navigate('RestaurantMenuItem', { menuItem: item, venue: venue, categories: categories })}
+            >
+                <View style={styles.details}>
+                    <Text style={styles.name}>{item.name}</Text>
+                    <Text style={styles.description} numberOfLines={2}>
+                        {item.description}
+                    </Text>
+                    <Text style={styles.price}>${item.price}</Text>
+                </View>
+            </Pressable>
+        </SwipeableItem>
       );
     };
   
     useEffect(() => {
-      let isCancelled = false;
-  
       const fetchData = async () => {
         try {
-          const fetchedMenuItems = await getMenuItems(venue);
-          // Additional logic can be added here if needed
+          await getMenuItems(venue);
         } catch (error) {
           console.error('Error in fetchData:', error);
         }
       };
       fetchData();
-  
-      return () => {
-        isCancelled = true;
-      };
     }, [venue]);
   
     const groupedData = groupItemsByCategory(displayedMenuItems);
@@ -95,15 +180,70 @@ const RestaurantHomeScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <SafeAreaView>
-          <Text style={styles.venueName}>{venue?.venue_name}</Text>
-          <Text>Create Menu</Text>
-          <TouchableOpacity
-            onPress={() => nav.navigate('RestaurantMenuItem')}
-          >
-          <Text>Add A Menu Item</Text>
-          </TouchableOpacity>
+        <Modal
+            visible={isDeleteModalVisible}
+            transparent={true}
+            animationType="slide"
+        >
+            <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>Are you sure you want to delete this item?</Text>
+                    <Text style={styles.modalSubtitle}>This cannot be undone</Text>
+                    <View style={styles.buttonRow}>
+                        <Button title="Cancel" onPress={cancelDelete} />
+                        <Button
+                            title="Confirm"
+                            onPress={confirmDelete}
+                        />
+                    </View>
+                </View>
+            </View>
+        </Modal>
           <FlatList
             data={groupedData}
+            ListHeaderComponent={
+                <View>
+                  <Text style={styles.venueName}>{venue?.venue_name}</Text>
+                    <View style={styles.actionButtonContainer}>
+                    <View style={{ width: '100%', paddingLeft: 10, marginBottom: 15 }}>
+                        <Text style={styles.headerText}>Menus</Text>
+                    </View>
+                    {menus.map((item, index) => (
+                    <TouchableOpacity
+                        key={`menu-${index}`}
+                        style={[
+                        styles.actionButton,
+                        selectedMenu.id === item.id && styles.selectedMenu,
+                        ]}
+                        onPress={() => handleMenuSelect(item)}
+                    >
+                        <Text
+                        style={[
+                            styles.actionButtonText,
+                            selectedMenu.id === item.id && styles.selectedMenuText,
+                        ]}
+                        >
+                        {item.name}
+                        </Text>
+                    </TouchableOpacity>
+                    ))}
+                    </View>
+                    <View style={styles.actionButtonContainerTop}>
+                        <TouchableOpacity
+                            onPress={() => nav.navigate('RestaurantMenuItem', { venue: venue, categories: categories })}
+                            style={styles.actionButton}
+                        >
+                            <Text style={styles.actionButtonText}>Add A Menu Item</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => nav.navigate('RestaurantMenu', { venue: venue })}
+                        >
+                            <Text style={styles.actionButtonText}>Create Menu</Text>
+                        </TouchableOpacity>
+                    </View>      
+                </View>
+              }
             keyExtractor={(item, index) =>
               item.type === 'header' ? `header-${item.category}` : `item-${item.data.id}`
             }
@@ -113,7 +253,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
         </SafeAreaView>
       </View>
     );
-  };
+  };  
 
 const mainColor = "#00A6FF"
 const mainColorO = "rgba(0, 166, 255, 0.5)";
@@ -121,69 +261,180 @@ const mint = "#3EB489";
 const darkColor = "#202124";
 const charcoal = "#36454F";
 const lightgrey = "#E5E4E2";
+const red = "#FF0B0B";
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
   
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#fff',
+const styles = StyleSheet.create({
+container: {
+    flex: 1,
+    backgroundColor: '#fff',
+},
+venueName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    margin: 16,
+},
+header: {
+    marginBottom: 8,
+    marginTop: 16,
+    paddingHorizontal: 8,
+},
+headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+},
+listContainer: {
+    padding: 16,
+},
+card: {
+    backgroundColor: '#fff',
+    minHeight: 80,
+    padding: 16,
+    marginVertical: 8,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+},
+image: {
+    width: 100,
+    height: 100,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+},
+details: {
+    flex: 1,
+    padding: 8,
+},
+name: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+},
+description: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+},
+price: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+},
+actionButton: {
+    shadowColor: 'black',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 1.65,
+    elevation: 2,
+    backgroundColor: lightgrey,
+    width: 150,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 30,
+    marginBottom: 10,
+    marginRight: 20
+},
+actionButtonText: {
+    fontSize: 15,
+    fontWeight: '600'
+},
+actionButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    flexWrap: 'wrap',
+    shadowColor: 'grey',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 1,
+    elevation: 1,
+    paddingVertical: 20,
+    borderRadius: 10,
+    backgroundColor: "#F9F9F9"
     },
-    venueName: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      margin: 16,
+    actionButtonContainerTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        flexWrap: 'wrap',
+        shadowColor: 'grey',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.15,
+        shadowRadius: 1,
+        elevation: 1,
+        paddingVertical: 20,
+        borderRadius: 10
     },
-    header: {
-      marginBottom: 8,
-      marginTop: 16,
-      paddingHorizontal: 8,
+    menuItem: {
+    shadowColor: 'black',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 1.65,
+    elevation: 2,
+    backgroundColor: lightgrey,
+    width: 150,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 30
     },
-    headerText: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: '#333',
+    selectedMenu: {
+    backgroundColor: mainColor, 
+    borderColor: '#4CAF50',
     },
-    listContainer: {
-      padding: 16,
+    menuText: {
+    color: '#000',
     },
-    card: {
-      flexDirection: 'row',
-      marginBottom: 16,
+    selectedMenuText: {
+    color: '#fff',
+    },
+    underlayAction: {
+      justifyContent: 'center',
+      paddingHorizontal: 20,
       borderRadius: 8,
-      overflow: 'hidden',
-      backgroundColor: '#fff',
-      elevation: 3, // For Android shadow
-      shadowColor: '#000', // For iOS shadow
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-    },
-    image: {
-      width: 100,
-      height: 100,
-      borderTopLeftRadius: 8,
-      borderBottomLeftRadius: 8,
-    },
-    details: {
       flex: 1,
-      padding: 8,
+      padding: 16,
+      marginVertical: 8,
     },
-    name: {
-      fontSize: 16,
+      alignLeft: {
+      alignItems: 'flex-end',
+    },
+      alignRight: {
+      alignItems: 'flex-start',
+    },
+      actionText: {
+      color: '#fff',
       fontWeight: 'bold',
-      marginBottom: 4,
-    },
-    description: {
-      fontSize: 14,
-      color: '#666',
-      marginBottom: 8,
-    },
-    price: {
       fontSize: 16,
-      fontWeight: 'bold',
-      color: '#333',
     },
-  });
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        width: '80%',
+        padding: 20,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    modalSubtitle: {
+        fontSize: 14,
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+
+});
   
   export default RestaurantHomeScreen;

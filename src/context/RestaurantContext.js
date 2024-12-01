@@ -20,6 +20,7 @@ export const RestaurantProvider = ({ children }) => {
   const [menuItemsLoading, setMenuItemsLoading] = useState(false);
   const [displayedMenuItems, setDisplayedMenuItems] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [menus, setMenus] = useState([]);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -107,15 +108,22 @@ export const RestaurantProvider = ({ children }) => {
     try {
         const res = await axios.get(`${MOBYLMENU_API_BASE_URL}/get_menu_items/${venue.id}/`);
         const response = res.data;
+
+        // Transform the response into a JSON object with item IDs as keys
+        const transformedMenuItems = response.reduce((acc, item) => {
+            acc[item.id] = item;
+            return acc;
+        }, {});
+
         setMenuItemsLoading(false);
-        setDisplayedMenuItems(response);
-        return response;
+        setDisplayedMenuItems(transformedMenuItems);
+        return transformedMenuItems;
     } catch (err) {
         console.log(`Error getting menuItems: ${err}`);
         setMenuItemsLoading(false);
         return null;
     }
-  };
+};
   
 
   const restaurantLogout = async () => {
@@ -225,6 +233,192 @@ const updateOrderStatus = (orderId, newStatus, declineNote = '') => {
   });
 };
 
+const createMenuItem = async (menuItemData, menu) => {
+  try {
+    // Add the menu ID to the FormData
+    menuItemData.append('menu', menu);
+
+    console.log('Data being sent for new menu item:', menuItemData);
+
+    const res = await axios.post(
+      `${MOBYLMENU_API_BASE_URL}/menu_item/`,
+      menuItemData,
+      {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`, // Add the token here
+          'Content-Type': 'multipart/form-data', // Ensure correct content type
+        },
+      }
+    );
+
+    const newItem = res.data;
+
+    // Update displayedMenuItems with the new item
+    setDisplayedMenuItems((prevItems) => ({
+      ...prevItems,
+      [newItem.id]: newItem,
+    }));
+
+    return newItem;
+  } catch (error) {
+    console.error('Error creating menu item:', error);
+    throw error;
+  }
+};
+
+  const updateMenuItem = async (menuItemId, formData) => {
+    try {
+  
+      // Omit 'picture' and 'picture_compressed' fields if they are URLs
+      if (formData.get('picture') && typeof formData.get('picture') === 'string' && formData.get('picture').startsWith('http')) {
+        formData.delete('picture'); // Remove the field from formData
+      }
+  
+      if (formData.get('picture_compressed') && typeof formData.get('picture_compressed') === 'string' && formData.get('picture_compressed').startsWith('http')) {
+        formData.delete('picture_compressed'); // Remove the field from formData
+      }
+  
+      // Send the processed formData to the backend
+      const res = await axios.put(
+        `${MOBYLMENU_API_BASE_URL}/menu_item/${menuItemId}/`,
+        formData, // Send the formData directly
+        {
+          headers: {
+            Authorization: `Token ${restaurantInfo?.token}`,
+            'Content-Type': 'multipart/form-data', // Ensure the correct content type
+          },
+        }
+      );
+  
+      const updatedItem = res.data;
+  
+      // Update displayedMenuItems with the updated item
+      setDisplayedMenuItems((prevItems) => ({
+        ...prevItems,
+        [updatedItem.id]: updatedItem, // Replace the existing item with the updated one
+      }));
+  
+      return updatedItem;
+    } catch (error) {
+      console.error('Error updating menu item:', error);
+      throw error;
+    }
+  };
+  
+const deleteMenuItem = async (menuItemId) => {
+    try {
+      await axios.delete(
+        `${MOBYLMENU_API_BASE_URL}/menu_item/${menuItemId}/`,
+        {
+          headers: {
+            Authorization: `Token ${restaurantInfo?.token}`, // Add the token here
+          },
+        }
+      );
+
+      // Remove the item from displayedMenuItems
+      setDisplayedMenuItems((prevItems) => {
+        const updatedItems = { ...prevItems };
+        delete updatedItems[menuItemId];
+        return updatedItems;
+      });
+    } catch (error) {
+      console.error('Error deleting menu item:', error);
+      throw error;
+    }
+  };
+
+  const getOtherMenus = async (venue) => {
+    if (!venue || !venue.id) {
+        return null;
+    }
+    
+    try {
+        const res = await axios.get(`${MOBYLMENU_API_BASE_URL}/other_menus/${venue.id}`);
+        const response = res.data;
+        return response;
+    } catch (err) {
+        console.log(`Error getting other menus: ${err}`);
+        return null;
+    }
+  };
+
+  const getOtherMenuItems = async (menu) => {
+    if (!menu || !menu.id) {
+        console.log('Menu or menu ID not provided');
+        return null;
+    }
+    
+    try {
+        const res = await axios.get(`${MOBYLMENU_API_BASE_URL}/other_menu_items/${menu.id}`);
+        const response = res.data;
+        // Transform the response into a JSON object with item IDs as keys
+        const transformedMenuItems = response.reduce((acc, item) => {
+          acc[item.id] = item;
+          return acc;
+      }, {});
+
+      setDisplayedMenuItems(transformedMenuItems);
+      return transformedMenuItems;
+    } catch (err) {
+        console.log(`Error getting other menu items: ${err}`);
+        return null;
+    }
+  };
+
+const createMenu = async (formData) => {
+  try {
+    const response = await axios.post(`${MOBYLMENU_API_BASE_URL}/menu/`, formData, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Token ${restaurantInfo?.token}`,
+      },
+    });
+
+    const newMenu = response.data;
+    // Append the new menu to the menus list
+    setMenus([...menus, newMenu]); // Adds the new menu at the end
+    return newMenu;
+  } catch (error) {
+    console.error("Error creating menu:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+const updateMenu = async (menuId, formData) => {
+  try {
+    const response = await axios.put(`${MOBYLMENU_API_BASE_URL}/menu/${menuId}/`, formData, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Token ${restaurantInfo?.token}`,
+      },
+    });
+
+    const updatedMenu = response.data;
+    // Replace the updated menu in the menus list
+    setMenus(
+      menus.map((menu) => (menu.id === menuId ? updatedMenu : menu)) // Replaces the matching menu
+    );
+    return updatedMenu;
+  } catch (error) {
+    console.error("Error updating menu:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+const deleteMenu = async (menuId) => {
+  try {
+    await axios.delete(`${MOBYLMENU_API_BASE_URL}/menu/${menuId}/`);
+    // Remove the deleted menu from the list
+    setMenus(menus.filter((menu) => menu.id !== menuId));
+    console.log("Menu deleted successfully.");
+  } catch (error) {
+    console.error("Error deleting menu:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
   return (
     <RestaurantContext.Provider value={{ 
       restaurantIsLoggedIn, 
@@ -242,7 +436,17 @@ const updateOrderStatus = (orderId, newStatus, declineNote = '') => {
       updateAsyncStorageOrders,
       updateOrderStatus,
       getMenuItems,
-      displayedMenuItems
+      displayedMenuItems,
+      createMenuItem,
+      updateMenuItem,
+      deleteMenuItem,
+      getOtherMenus,
+      getOtherMenuItems,
+      createMenu,
+      updateMenu,
+      menus,
+      setMenus,
+      deleteMenu
        }}>
       {children}
     </RestaurantContext.Provider>

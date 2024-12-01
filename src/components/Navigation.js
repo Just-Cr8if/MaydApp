@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Button } from 'react-native';
+import { Image, Text } from 'react-native';
 
 // Import screens
 import InitialScreen from '../screens/InitialScreen';
@@ -17,6 +17,7 @@ import CameraScreen from '../screens/driverScreens/CameraScreen';
 import RestaurantLoginScreen from '../screens/restaurantScreens/RestaurantLoginScreen';
 import RestaurantHomeScreen from '../screens/restaurantScreens/RestaurantHomeScreen';
 import RestaurantMenuItemScreen from '../screens/restaurantScreens/RestaurantMenuItemScreen';
+import RestaurantMenuScreen from '../screens/restaurantScreens/RestaurantMenuScreen';
 import RestaurantOrderScreen from '../screens/restaurantScreens/RestaurantOrderScreen';
 import RestaurantSettingsScreen from '../screens/restaurantScreens/RestaurantSettingsScreen';
 
@@ -81,6 +82,11 @@ const RestaurantHomeStackNavigator = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="RestaurantMenu"
+        component={RestaurantMenuScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="RestaurantMenuItem"
         component={RestaurantMenuItemScreen}
         options={{ headerShown: false }}
@@ -93,19 +99,57 @@ const RestaurantTabNavigator = () => {
   return (
     <Tab.Navigator>
       <Tab.Screen
-        name="Home"
+        name="Menus"
         component={RestaurantHomeStackNavigator}
         options={{
           headerShown: false,
-          tabBarLabel: 'Home'
+          tabBarLabel: ({ focused }) => (
+            <Text
+              style={{
+                color: focused ? '#00A6FF' : 'black',
+                fontSize: 12,
+              }}
+            >
+              Menus
+            </Text>
+          ),
+          tabBarIcon: ({ focused }) => (
+            <Image 
+              source={focused ? require('../images/m-circle-blue.png') : require('../images/m-circle-black.png')}  
+              style={{ 
+                width: 25, 
+                height: 25 
+              }}
+            />
+          ),
         }}
       />
+
       <Tab.Screen
         name="Orders"
         component={RestaurantOrderScreen}
         options={{
           headerShown: false,
-          tabBarLabel: 'Orders'
+          tabBarLabel: 'Orders',
+          tabBarLabel: ({ focused }) => (
+            <Text
+              style={{
+                color: focused ? '#00A6FF' : 'black',
+                fontSize: 12,
+              }}
+            >
+              Orders
+            </Text>
+          ),
+          tabBarIcon: ({ focused }) => (
+            <Image 
+              source={focused ? require('../images/o-circle-blue.png') : require('../images/o-circle-black.png')}  
+              style={{ 
+                width: 25, 
+                height: 25 
+              }}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -113,7 +157,25 @@ const RestaurantTabNavigator = () => {
         component={RestaurantSettingsScreen}
         options={{
           title: 'Settings',
-          tabBarLabel: 'Logout'
+          tabBarLabel: ({ focused }) => (
+            <Text
+              style={{
+                color: focused ? '#00A6FF' : 'black',
+                fontSize: 12,
+              }}
+            >
+              Settings
+            </Text>
+          ),
+          tabBarIcon: ({ focused }) => (
+            <Image 
+              source={focused ? require('../images/s-circle-blue.png') : require('../images/s-circle-black.png')}  
+              style={{ 
+                width: 25, 
+                height: 25 
+              }}
+            />
+          ),
         }}
       />
     </Tab.Navigator>

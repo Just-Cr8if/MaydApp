@@ -166,7 +166,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
                         !kitchenView && setSelectedOrderId(isSelected ? null : item.id)
                     }
                 >
-                    <View style={{ flexDirection: 'row' }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text style={[styles.customerName, { marginRight:10 }]}>{transformOrderType(item)}</Text>
                         <Text style={styles.customerName}>{item.customer_name}</Text>
                     </View>
@@ -310,7 +310,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
                     </View>
                 </View>
             </Modal>
-                <Text style={styles.venueName}>{venue?.venue_name}</Text>
+                <Text style={styles.venueName}>Manage Orders</Text>
                 <View style={styles.orderHeaderContainer}>
                     <TouchableOpacity
                         style={styles.orderHeaderButton}
