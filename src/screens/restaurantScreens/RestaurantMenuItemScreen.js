@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, SafeAreaView, Text, TextInput, FlatList,
-  StyleSheet, Image, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+  StyleSheet, Image, TouchableOpacity, Dimensions, ScrollView, 
+  Pressable} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DismissKeyboardView from '../../components/helperComponents/DissmissKeyboardView';
 import { useRestaurantAuth } from '../../context/RestaurantContext';
@@ -8,6 +9,8 @@ import CustomHeader from '../../components/helperComponents/CustomHeader';
 import { useNavigation } from '@react-navigation/native';
 import Button from '../../components/buttons/Button';
 import LargeButton from '../../components/buttons/LargeButton';
+import CustomizationForm from '../../components/helperComponents/CustomizationForm';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const RestaurantMenuItemScreen = ({ route, navigation }) => {
   const { menuItem, venue, categories } = route.params || {};
@@ -19,9 +22,43 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
   const [itemType, setItemType] = useState(menuItem?.item_type || '');
   const [filteredCategories, setFilteredCategories] = useState(categories || []); // Filtered list of categories
   const [showDropdown, setShowDropdown] = useState(false);
-
+  const [customizableContainerVisible, setCustomizableContainerVisible] = useState(
+    menuItem?.customization_groups && menuItem.customization_groups.length > 0
+  );  
   const [isFormValid, setIsFormValid] = useState(false);
   const nav = useNavigation();
+
+  const [groups, setGroups] = useState(() => {
+    // Check if menuItem.customization_groups is available and has data
+    if (menuItem?.customization_groups && menuItem.customization_groups.length > 0) {
+      // Map the customization groups to match the state structure
+      return menuItem.customization_groups.map((group, index) => ({
+        id: group.id || index + 1, // Use provided ID or fallback to a temporary ID
+        name: group.name || "",
+        required: group.required || false,
+        minSelections: group.min_selections || 1,
+        maxSelections: group.max_selections || 1,
+        options: group.options.map((option, optIndex) => ({
+          id: option.id || optIndex + 1, // Use provided ID or fallback to a temporary ID
+          name: option.name || "",
+          priceModifier: option.price_modifier || "",
+          description: option.description || "",
+        })),
+      }));
+    }
+  
+    // Fallback to an empty group if no customization groups exist
+    return [
+      {
+        id: 1,
+        name: "",
+        required: false,
+        minSelections: 1,
+        maxSelections: 1,
+        options: [],
+      },
+    ];
+  });
 
   // Dietary options state
   const [dietaryOptions, setDietaryOptions] = useState({
@@ -55,6 +92,10 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
     setIsFormValid(isValid);
   }, [name, price, itemType]);
 
+  const toggleCustomizableContainerVisible = () => {
+    setCustomizableContainerVisible(!customizableContainerVisible);
+  }
+
   const handleCategoryInputChange = (value) => {
     setItemType(value);
   
@@ -78,11 +119,10 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
   };
 
   const handleSave = async () => {
-    const sanitizedDescription = description.replace(/\n/g, "\\n");
     try {
       const formData = new FormData();
       formData.append('name', name);
-      formData.append('description', sanitizedDescription);
+      formData.append('description', description);
       formData.append('price', price);
       formData.append('item_type', itemType);
 
@@ -96,6 +136,28 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
           name: fileName,
           type: 'image/jpeg',
         });
+      }
+
+      // Validate and append groups (customizations)
+      const validGroups = groups.filter(group => group.name && group.options.length > 0);
+
+      if (validGroups.length > 0) {
+        formData.append(
+          "customizations",
+          JSON.stringify(
+            validGroups.map(group => ({
+              name: group.name,
+              required: group.required,
+              min_selections: group.minSelections,
+              max_selections: group.maxSelections,
+              options: group.options.map(option => ({
+                name: option.name,
+                price_modifier: option.priceModifier,
+                description: option.description,
+              })),
+            }))
+          )
+        );
       }
 
       // Append dietary options
@@ -117,6 +179,7 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
       console.error('Error saving menu item:', error);
     }
   };
+
 
   const toggleDietaryOption = (key) => {
     setDietaryOptions((prevOptions) => ({
@@ -149,11 +212,12 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
           nav.goBack();
         }}
       />
-      <DismissKeyboardView>
-        <ScrollView
+        <KeyboardAwareScrollView
           style={styles.scrollContainer}
           contentContainerStyle={styles.contentContainer}
           keyboardShouldPersistTaps="handled"
+          enableOnAndroid={true} // Ensures it works on Android
+          extraHeight={100} // Adjust this value if needed
         >
           
             <Text style={[styles.label, { marginTop: 20 }]}>Name</Text>
@@ -204,14 +268,14 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
               )}
   
             <Text style={styles.label}>Image</Text>
-            {imageUri ? (
-              <Image source={{ uri: imageUri }} style={styles.image} />
-            ) : (
-              <Text>No image selected</Text>
-            )}
-            <Button title="Select Image" onPress={pickImage} />
+            <View style={{ flexDirection: 'row' }}>
+              {imageUri && (
+                <Image source={{ uri: imageUri }} style={styles.image} />
+              )}
+              <Button title="Select Image" onPress={pickImage} />
+            </View>
   
-            <Text style={styles.label}>Dietary Options</Text>
+            <Text style={[styles.label, { marginTop: 10 }]}>Dietary Options</Text>
             <View style={styles.checkboxOuterContainer}>
               {Object.keys(dietaryOptions)
                 .reduce((rows, key, index, keys) => {
@@ -235,10 +299,23 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
                   </View>
                 ))}
             </View>
+            <Pressable
+              style={styles.customizableButtonContainer}
+              onPress={() => toggleCustomizableContainerVisible()}
+            >
+              <Text style={styles.customizableButton}>{customizableContainerVisible ? "-" : "+"} Is this item customizable?</Text>
+            </Pressable>
+            {customizableContainerVisible &&
+              <CustomizationForm
+                groups={groups}
+                setGroups={setGroups}
+                maxGroupsLimit={5}
+              />
+            }
+
   
             <Button title="Save" onPress={handleSave} disabled={!isFormValid} />
-        </ScrollView>
-      </DismissKeyboardView>
+        </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }  
@@ -269,11 +346,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 4,
   },
-  image: {
-    width: '100%',
-    height: 200,
-    marginBottom: 16,
-  },
   button: {
     backgroundColor: mainColor,
     padding: 12,
@@ -300,7 +372,7 @@ const styles = StyleSheet.create({
   image: {
     width: 100,
     height: 100,
-    marginBottom: 10,
+    marginRight: 20
   },
   button: {
     backgroundColor: mainColor,
@@ -351,6 +423,17 @@ const styles = StyleSheet.create({
   },
   dropdownItemText: {
     fontSize: 15
+  },
+  customizableButton: {
+    color: mainColor,
+    fontSize: 15,
+    fontWeight: '600'
+  },
+  customizableButtonContainer: {
+    marginVertical: 10
+  },
+  customizableFormContainer: {
+
   }
 });
 
