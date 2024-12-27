@@ -24,37 +24,65 @@ const RestaurantOrderScreen = ({ navigation }) => {
     
     useEffect(() => {
         // Initialize the SSE connection
-        const eventSource = new RNEventSource(`${MOBYLMENU_API_BASE_URL}/sse/`, {
-            headers: {
-                Connection: "keep-alive",
-                "Content-Type": "application/json",
-                "Cache-Control": "no-cache",
-                "Access-Control-Allow-Origin": "*",
-            },
-        });
-
-        // Listen for incoming messages
+        const eventSource = new RNEventSource(
+            `${MOBYLMENU_API_BASE_URL}/sse/?venue_id=${venue?.id}`,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Cache-Control": "no-cache",
+                    "Access-Control-Allow-Origin": "*",
+                },
+            }
+        );
+    
+        console.log("SSE Connection initialized:", eventSource);
+    
+        // Log the connection's readyState
+        console.log("SSE readyState (initial):", eventSource?.eventSource?.readyState);
+    
+        // Listen for the 'open' event to confirm the connection
+        eventSource.onopen = () => {
+            console.log("SSE connection opened");
+        };
+    
+        // Log any progress or state changes
+        const logProgress = () => {
+            console.log("SSE readyState (progress):", eventSource?.eventSource?.readyState);
+        };
+    
+        // Check for 'message' events
         eventSource.addEventListener("message", (event) => {
-            const newOrder = JSON.parse(event.data);
-        
-            // Update the state and async storage
-            setRestaurantOrders((prevOrders) => {
-                const updatedOrders = [...prevOrders, newOrder]; // Create the updated list
-                updateAsyncStorageOrders(updatedOrders); // Pass the updated list
-                return updatedOrders; // Update the state with the new list
-            });
-        });        
-
-        // Handle connection errors
+            console.log("Raw SSE message received:", event);
+            try {
+                const newOrder = JSON.parse(event.data);
+                console.log("Parsed message data:", newOrder);
+    
+                // Update the state and async storage
+                setRestaurantOrders((prevOrders) => {
+                    const updatedOrders = [...prevOrders, newOrder];
+                    console.log("Updated restaurant orders:", updatedOrders);
+                    updateAsyncStorageOrders(updatedOrders);
+                    return updatedOrders;
+                });
+            } catch (error) {
+                console.error("Error parsing SSE message:", error);
+            }
+        });
+    
+        // Log errors
         eventSource.onerror = (error) => {
             console.error("SSE Error:", error.message || error);
+            logProgress(); // Log readyState after error
         };
-
-        // Cleanup the connection when the component unmounts
+    
+        // Cleanup on unmount
         return () => {
+            console.log("Closing SSE connection");
             eventSource.close();
+            logProgress(); // Log readyState after closing
         };
     }, []);
+    
 
     // Memoized counts for each order type
     const orderCounts = useMemo(() => {
@@ -264,9 +292,22 @@ const RestaurantOrderScreen = ({ navigation }) => {
                                                 {orderItem.menu_item.name}
                                             </Text>
                                         </View>
-                                            <Text style={styles.itemPrice}>
-                                                Price: ${orderItem.menu_item.price}
+                                        <Text style={styles.itemPrice}>
+                                            Price: ${orderItem.menu_item.price}
+                                        </Text>
+                                        
+                                        {orderItem.customizations?.length > 0 && orderItem.customizations?.map((group, groupIndex) => (
+                                        <View key={groupIndex} style={styles.customizationGroup}>
+                                            <Text style={styles.customizationGroupName}>
+                                                {group.group_name}:
                                             </Text>
+                                            {group.options?.map((option, optionIndex) => (
+                                                <Text key={optionIndex} style={styles.customizationOption}>
+                                                    - {option.name} {option.price_modifier > 0 && `(+ $${option.price_modifier})`}
+                                                </Text>
+                                            ))}
+                                        </View>
+                                        ))}
                                         <Text style={styles.itemDescription}>
                                             {orderItem.note}
                                         </Text>
@@ -554,5 +595,18 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 16,
         color: 'gray',
+    },
+    customizationGroup: {
+        marginTop: 10,
+    },
+    customizationGroupName: {
+        fontWeight: 'bold',
+        fontSize: 14,
+        color: '#333',
+    },
+    customizationOption: {
+        fontSize: 14,
+        color: '#666',
+        marginLeft: 10,
     },
 });

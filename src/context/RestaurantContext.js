@@ -277,6 +277,8 @@ const createMenuItem = async (menuItemData, menu) => {
       if (formData.get('picture_compressed') && typeof formData.get('picture_compressed') === 'string' && formData.get('picture_compressed').startsWith('http')) {
         formData.delete('picture_compressed'); // Remove the field from formData
       }
+
+      console.log('FORM DATA', formData);
   
       // Send the processed formData to the backend
       const res = await axios.put(

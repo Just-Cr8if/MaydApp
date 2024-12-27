@@ -29,17 +29,15 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
   const nav = useNavigation();
 
   const [groups, setGroups] = useState(() => {
-    // Check if menuItem.customization_groups is available and has data
     if (menuItem?.customization_groups && menuItem.customization_groups.length > 0) {
-      // Map the customization groups to match the state structure
-      return menuItem.customization_groups.map((group, index) => ({
-        id: group.id || index + 1, // Use provided ID or fallback to a temporary ID
+      return menuItem.customization_groups.map(group => ({
+        id: group.id || null, // Do not assign a default value if `id` is not present
         name: group.name || "",
         required: group.required || false,
         minSelections: group.min_selections || 1,
         maxSelections: group.max_selections || 1,
-        options: group.options.map((option, optIndex) => ({
-          id: option.id || optIndex + 1, // Use provided ID or fallback to a temporary ID
+        options: group.options.map(option => ({
+          id: option.id || null, // Do not assign a default value if `id` is not present
           name: option.name || "",
           priceModifier: option.price_modifier || "",
           description: option.description || "",
@@ -47,10 +45,10 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
       }));
     }
   
-    // Fallback to an empty group if no customization groups exist
+    // For new items, initialize without IDs
     return [
       {
-        id: 1,
+        id: null, // No ID for new group
         name: "",
         required: false,
         minSelections: 1,
@@ -59,6 +57,7 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
       },
     ];
   });
+  
 
   // Dietary options state
   const [dietaryOptions, setDietaryOptions] = useState({
@@ -125,32 +124,34 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
       formData.append('description', description);
       formData.append('price', price);
       formData.append('item_type', itemType);
-
+  
       // Append the selected image
       if (imageUri && !imageUri.startsWith('http')) {
         const sanitizedFileName = name.trim().replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
         const fileName = `${sanitizedFileName}.jpg`;
-
+  
         formData.append('picture', {
           uri: imageUri,
           name: fileName,
           type: 'image/jpeg',
         });
       }
-
+  
       // Validate and append groups (customizations)
       const validGroups = groups.filter(group => group.name && group.options.length > 0);
-
+  
       if (validGroups.length > 0) {
         formData.append(
           "customizations",
           JSON.stringify(
             validGroups.map(group => ({
+              ...(group.id ? { id: group.id } : {}), // Only include ID if it exists
               name: group.name,
               required: group.required,
               min_selections: group.minSelections,
               max_selections: group.maxSelections,
               options: group.options.map(option => ({
+                ...(option.id ? { id: option.id } : {}), // Only include ID if it exists
                 name: option.name,
                 price_modifier: option.priceModifier,
                 description: option.description,
@@ -159,12 +160,12 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
           )
         );
       }
-
+  
       // Append dietary options
       Object.entries(dietaryOptions).forEach(([key, value]) => {
         formData.append(key, value);
       });
-
+  
       if (menuItem) {
         // Update existing item
         await updateMenuItem(menuItem.id, formData);
@@ -173,12 +174,12 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
         await createMenuItem(formData, venue?.menu?.id);
         console.log('Created new menu item:', { name, description, price, dietaryOptions, imageUri });
       }
-
+  
       navigation.goBack();
     } catch (error) {
       console.error('Error saving menu item:', error);
     }
-  };
+  };  
 
 
   const toggleDietaryOption = (key) => {

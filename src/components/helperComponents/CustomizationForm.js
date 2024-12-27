@@ -12,164 +12,176 @@ const CustomizationForm = ({ groups = [], setGroups, maxGroupsLimit = 5, maxOpti
         }
     
         setGroups([
-        ...groups,
-        {
-            id: groups.length + 1, // Temporary ID
-            name: "",
-            required: false,
-            minSelections: 1,
-            maxSelections: 1,
-            options: [],
-        },
+            ...groups,
+            {
+                id: null, // No temporary ID
+                name: "",
+                required: false,
+                minSelections: 1,
+                maxSelections: 1,
+                options: [],
+            },
         ]);
     };
     
-    const removeGroup = (id) => {
-        setGroups(groups.filter((group) => group.id !== id));
+    const removeGroup = (index) => {
+        setGroups(groups.filter((_, groupIndex) => groupIndex !== index));
     };
-    
-    const updateGroup = (id, field, value) => {
+
+    const updateGroup = (index, field, value) => {
         setGroups(
-        groups.map((group) =>
-            group.id === id ? { ...group, [field]: value } : group
-        )
+            groups.map((group, groupIndex) =>
+                groupIndex === index ? { ...group, [field]: value } : group
+            )
         );
     };
     
-    const addOption = (groupId) => {
+    const addOption = (groupIndex) => {
         setGroups(
-        groups.map((group) =>
-            group.id === groupId
-            ? {
-                ...group,
-                options: [
-                    ...(group.options || []), // Fallback to an empty array
-                    { id: (group.options?.length || 0) + 1, name: "", priceModifier: "", description: "" },
-                ],
-                }
-            : group
-        )
+            groups.map((group, index) =>
+                index === groupIndex
+                    ? {
+                          ...group,
+                          options: [
+                              ...(group.options || []),
+                              { id: null, name: "", priceModifier: "", description: "" }, // No temporary ID
+                          ],
+                      }
+                    : group
+            )
         );
     };
-    
-    const removeOption = (groupId, optionId) => {
+
+    const removeOption = (groupIndex, optionIndex) => {
         setGroups(
-        groups.map((group) =>
-            group.id === groupId
-            ? { ...group, options: group.options.filter((option) => option.id !== optionId) }
-            : group
-        )
+            groups.map((group, index) =>
+                index === groupIndex
+                    ? {
+                          ...group,
+                          options: group.options.filter((_, optIndex) => optIndex !== optionIndex),
+                      }
+                    : group
+            )
         );
     };
-    
-    const updateOption = (groupId, optionId, field, value) => {
+
+    const updateOption = (groupIndex, optionIndex, field, value) => {
         setGroups(
-        groups.map((group) =>
-            group.id === groupId
-            ? {
-                ...group,
-                options: group.options.map((option) =>
-                    option.id === optionId ? { ...option, [field]: value } : option
-                ),
-                }
-            : group
-        )
+            groups.map((group, index) =>
+                index === groupIndex
+                    ? {
+                          ...group,
+                          options: group.options.map((option, optIndex) =>
+                              optIndex === optionIndex ? { ...option, [field]: value } : option
+                          ),
+                      }
+                    : group
+            )
         );
     };
     
     return (
         <View style={styles.container}>
-        {groups.map((group, groupIndex) => (
-            <View key={group.id} style={styles.groupContainer}>
-            <Text style={styles.customizableHeader}>Customizable Group</Text>
-            <View style={styles.removeButtonContainer}>
-                <Pressable onPress={() => removeGroup(group.id)}>
-                    <Text style={styles.removeButton}>Remove Group</Text>
-                </Pressable>
-            </View>
-            <TextInput
-                style={styles.input}
-                placeholder="IE: Choose A Base..."
-                value={group.name}
-                onChangeText={(value) => updateGroup(group.id, "name", value)}
-            />
-            <View style={styles.toggleContainer}>
-                <Text style={styles.customizableHeaderSubTitle}>Choice Required</Text>
-                <Switch
-                value={group.required}
-                onValueChange={(value) => updateGroup(group.id, "required", value)}
-                />
-            </View>
-            <View style={styles.selectionsContainer}>
-                <View style={styles.selectionContainer}>
-                    <Text style={styles.customizableHeaderSubTitle}>Minimum Required</Text>
-                    <TextInput
-                    style={styles.numericInput}
-                    placeholder="Min Selections"
-                    keyboardType="numeric"
-                    value={String(group.minSelections)}
-                    onChangeText={(value) => updateGroup(group.id, "minSelections", Number(value))}
-                    />
-                </View>
-                <View style={styles.selectionContainer}>
-                    <Text style={styles.customizableHeaderSubTitle}>Maximum Required</Text>
-                    <TextInput
-                    style={styles.numericInput}
-                    placeholder="Max Selections"
-                    keyboardType="numeric"
-                    value={String(group.maxSelections)}
-                    onChangeText={(value) => updateGroup(group.id, "maxSelections", Number(value))}
-                    />
-                </View>
-            </View>
-            <Text style={styles.customizableHeader}>Customizable Options</Text>
-            {(group.options || []).map((option, optionIndex) => (
-                <View key={option.id} style={styles.optionContainer}>
+            {groups.map((group, groupIndex) => (
+                <View key={groupIndex} style={styles.groupContainer}>
+                    <Text style={styles.customizableHeader}>Customizable Group</Text>
                     <View style={styles.removeButtonContainer}>
-                        <Pressable onPress={() => removeOption(group.id, option.id)}>
-                            <Text style={styles.removeButton}>Remove Option</Text>
+                        <Pressable onPress={() => removeGroup(groupIndex)}>
+                            <Text style={styles.removeButton}>Remove Group</Text>
                         </Pressable>
                     </View>
                     <TextInput
                         style={styles.input}
-                        placeholder="Option Name: White Rice, Brown Rice, etc..."
-                        value={option.name}
-                        onChangeText={(value) => updateOption(group.id, option.id, "name", value)}
+                        placeholder="IE: Choose A Base..."
+                        value={group.name}
+                        onChangeText={(value) => updateGroup(groupIndex, "name", value)}
                     />
-                    <Text style={styles.customizableHeaderSubTitle}>Price</Text>
-                    <TextInput
-                        style={styles.priceInput}
-                        placeholder="Leave blank if no charge"
-                        keyboardType="numeric"
-                        value={String(option.priceModifier)}
-                        onChangeText={(value) => updateOption(group.id, option.id, "priceModifier", value)}
-                    />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Description"
-                        value={option.description}
-                        onChangeText={(value) => updateOption(group.id, option.id, "description", value)}
-                    />
+                    <View style={styles.toggleContainer}>
+                        <Text style={styles.customizableHeaderSubTitle}>Choice Required</Text>
+                        <Switch
+                            value={group.required}
+                            onValueChange={(value) => updateGroup(groupIndex, "required", value)}
+                        />
+                    </View>
+                    <View style={styles.selectionsContainer}>
+                        <View style={styles.selectionContainer}>
+                            <Text style={styles.customizableHeaderSubTitle}>Minimum Required</Text>
+                            <TextInput
+                                style={styles.numericInput}
+                                placeholder="Min Selections"
+                                keyboardType="numeric"
+                                value={String(group.minSelections)}
+                                onChangeText={(value) =>
+                                    updateGroup(groupIndex, "minSelections", Number(value))
+                                }
+                            />
+                        </View>
+                        <View style={styles.selectionContainer}>
+                            <Text style={styles.customizableHeaderSubTitle}>Maximum Required</Text>
+                            <TextInput
+                                style={styles.numericInput}
+                                placeholder="Max Selections"
+                                keyboardType="numeric"
+                                value={String(group.maxSelections)}
+                                onChangeText={(value) =>
+                                    updateGroup(groupIndex, "maxSelections", Number(value))
+                                }
+                            />
+                        </View>
+                    </View>
+                    <Text style={styles.customizableHeader}>Customizable Options</Text>
+                    {(group.options || []).map((option, optionIndex) => (
+                        <View key={optionIndex} style={styles.optionContainer}>
+                            <View style={styles.removeButtonContainer}>
+                                <Pressable onPress={() => removeOption(groupIndex, optionIndex)}>
+                                    <Text style={styles.removeButton}>Remove Option</Text>
+                                </Pressable>
+                            </View>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Option Name: White Rice, Brown Rice, etc..."
+                                value={option.name}
+                                onChangeText={(value) =>
+                                    updateOption(groupIndex, optionIndex, "name", value)
+                                }
+                            />
+                            <Text style={styles.customizableHeaderSubTitle}>Price</Text>
+                            <TextInput
+                                style={styles.priceInput}
+                                placeholder="Leave blank if no charge"
+                                keyboardType="numeric"
+                                value={String(option.priceModifier)}
+                                onChangeText={(value) =>
+                                    updateOption(groupIndex, optionIndex, "priceModifier", value)
+                                }
+                            />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Description"
+                                value={option.description}
+                                onChangeText={(value) =>
+                                    updateOption(groupIndex, optionIndex, "description", value)
+                                }
+                            />
+                        </View>
+                    ))}
+                    {group.options.length < maxOptionsLimit && (
+                        <View style={styles.removeButtonContainer}>
+                            <Pressable onPress={() => addOption(groupIndex)}>
+                                <Text style={styles.addButton}>+ Add Option</Text>
+                            </Pressable>
+                        </View>
+                    )}
                 </View>
             ))}
-            {group.options.length < maxOptionsLimit && (
-                <View style={styles.removeButtonContainer}>
-                    <Pressable 
-                        onPress={() => addOption(group.id)}
-                    >
-                        <Text style={styles.addButton}>+ Add Option</Text>
-                    </Pressable>
-                </View>
+            {groups.length < maxGroupsLimit && (
+                <Pressable onPress={addGroup}>
+                    <Text style={styles.addButton}>+ Add Group</Text>
+                </Pressable>
             )}
-            </View>
-        ))}
-        {groups.length < maxGroupsLimit && (
-            <Pressable onPress={addGroup}>
-                <Text style={styles.addButton}>+ Add Group</Text>
-            </Pressable>
-        )}
         </View>
     );
+    
     };           
 
   const mainColor = "#00A6FF"
