@@ -15,6 +15,12 @@
           "microphonePermission": "Allow MobylMenu to access your microphone",
           "recordAudioAndroid": true
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
       ]
     ],
     "splash": {
@@ -25,7 +31,8 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Allow MobylMenu to access your photos to upload menu items."
+        "NSPhotoLibraryUsageDescription": "Allow MobylMenu to access your photos to upload menu items.",
+        "NSCameraUsageDescription": "Allow MobylMenu to access your camera to take photos."
       }
     },
     "android": {
@@ -34,9 +41,9 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "CAMERA"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA"
       ]
     },
     "web": {

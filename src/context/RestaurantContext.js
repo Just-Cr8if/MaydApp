@@ -21,6 +21,7 @@ export const RestaurantProvider = ({ children }) => {
   const [displayedMenuItems, setDisplayedMenuItems] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [menus, setMenus] = useState([]);
+  const [allTags, setAllTags] = useState([]);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -63,7 +64,14 @@ export const RestaurantProvider = ({ children }) => {
   
     // Save to AsyncStorage
     await AsyncStorage.setItem('restaurantOrders', JSON.stringify(limitedOrders));
-  };  
+  };
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      await getAllTags();
+    }
+    fetchInitialData();
+  }, []);
 
   const restaurantLogin = async (username, password, venueId) => {
     setRestaurantIsLoggingIn(true);
@@ -124,6 +132,17 @@ export const RestaurantProvider = ({ children }) => {
         return null;
     }
 };
+
+  const getAllTags = async () => {
+    try {
+      const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/tags/`);
+      setAllTags(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching all tags:', error);
+      throw error;
+    }
+  };
   
 
   const restaurantLogout = async () => {
@@ -448,7 +467,8 @@ const deleteMenu = async (menuId) => {
       updateMenu,
       menus,
       setMenus,
-      deleteMenu
+      deleteMenu,
+      allTags
        }}>
       {children}
     </RestaurantContext.Provider>

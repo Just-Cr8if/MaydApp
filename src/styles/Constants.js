@@ -11,6 +11,7 @@ export const Colors = {
   white: 'white',
   lightModeLightGrey: '#EBEBEB',
   lightgrey: "#E5E4E2",
+  lighestGrey: "#F2F2F2",
   disabledGrey: 'grey',
   buttonGrey: '#E1DFDB',
 
