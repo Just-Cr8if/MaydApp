@@ -22,6 +22,7 @@ export const RestaurantProvider = ({ children }) => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [menus, setMenus] = useState([]);
   const [allTags, setAllTags] = useState([]);
+  const [schedules, setSchedules] = useState([]);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -144,6 +145,54 @@ export const RestaurantProvider = ({ children }) => {
     }
   };
   
+  const createVenuePhotoAndTags = async (formData) => {
+    try {
+      const response = await axios.post(`${MOBYLMENU_API_BASE_URL}/venue_photo_tag/`, formData, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
+      console.log('Created VenuePhoto and Tags:', response.data);
+      return response.data; // Return the newly created data
+    } catch (error) {
+      console.error('Error creating venue photos and tags:', error.response?.data || error.message);
+      throw error; // Ensure the error propagates for further handling
+    }
+  };
+  
+  const updateVenuePhotoAndTags = async (formData) => {
+    try {
+      const response = await axios.put(`${MOBYLMENU_API_BASE_URL}/venue_photo_tag/`, formData, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
+      console.log('Updated VenuePhoto and Tags:', response.data);
+      return response.data; // Return the updated data
+    } catch (error) {
+      console.error('Error updating venue photos and tags:', error.response?.data || error.message);
+      throw error; // Ensure the error propagates for further handling
+    }
+  };
+
+  const getVenuePhotoAndTags = async () => {
+    try {
+      const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/venue_photo_tag/`, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+        },
+      });
+      
+      return response.data; // Returns the combined data for VenuePhoto and VenueTag
+    } catch (error) {
+      console.error('Error fetching venue photos and tags:', error.response?.data || error.message);
+      throw error; // Ensure the error propagates for further handling
+    }
+  };
 
   const restaurantLogout = async () => {
     setRestaurantIsLoggedIn(false);
@@ -348,6 +397,45 @@ const deleteMenuItem = async (menuItemId) => {
       throw error;
     }
   };
+  
+  const updateVenue = async (venueId, formData) => {
+    try {
+      const response = await axios.put(
+        `${MOBYLMENU_API_BASE_URL}/venues/${venueId}/`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Token ${restaurantInfo?.token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setVenue(response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating venue with ID ${venueId}:`, error);
+      throw error;
+    }
+  };
+
+  const getWeeklySchedules = async () => {
+    try {
+      const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/weekly_schedule/`, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+        },
+      });
+  
+      const fetchedSchedules = response.data;
+  
+      setSchedules(fetchedSchedules);
+  
+      return fetchedSchedules;
+    } catch (error) {
+      console.error("Error fetching weekly schedule:", error.response?.data || error.message);
+      throw error;
+    }
+  };
 
   const getOtherMenus = async (venue) => {
     if (!venue || !venue.id) {
@@ -468,7 +556,13 @@ const deleteMenu = async (menuId) => {
       menus,
       setMenus,
       deleteMenu,
-      allTags
+      allTags,
+      createVenuePhotoAndTags,
+      updateVenuePhotoAndTags,
+      getVenuePhotoAndTags,
+      updateVenue,
+      getWeeklySchedules,
+      schedules
        }}>
       {children}
     </RestaurantContext.Provider>

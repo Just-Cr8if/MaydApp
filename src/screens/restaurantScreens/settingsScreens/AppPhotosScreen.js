@@ -1,56 +1,117 @@
-import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useContext, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView,
+  Image
+ } from 'react-native';
 import { Colors } from '../../../styles/Constants';
 import { useRestaurantAuth } from "../../../context/RestaurantContext";
 import * as ImagePicker from "expo-image-picker";
+import { Picker } from "@react-native-picker/picker";
+import { useNavigation } from '@react-navigation/native';
+import Button from '../../../components/buttons/Button';
 
 const AppPhotosScreen = () => {
-  const { allTags } = useRestaurantAuth(); // Assuming `allTags` is an array of tag objects with `id` and `name`.
+  const { allTags, createVenuePhotoAndTags, updateVenuePhotoAndTags,
+    getVenuePhotoAndTags
+   } = useRestaurantAuth();
+  const [formData, setFormData] = useState({
+    dress_code: "",
+    logo: null,
+    picture: null,
+  });
+  const [preview, setPreview] = useState({
+    logoPreview: null,
+    picturePreview: null,
+  });
   const [selectedTags, setSelectedTags] = useState([]);
   const [logo, setLogo] = useState(null);
   const [coverPicture, setCoverPicture] = useState(null);
+  const [isCreating, setIsCreating] = useState(true);
+  const nav = useNavigation();
+
+  useEffect(() => {
+    const fetchVenueData = async () => {
+      try {
+        const data = await getVenuePhotoAndTags();
+
+        const hasExistingData =
+          (data.venue_tag && (data.venue_tag.dress_code || data.venue_tag.tags?.length)) ||
+          (data.venue_photo && (data.venue_photo.logo || data.venue_photo.picture));
+
+        setIsCreating(!hasExistingData);
+
+        setFormData({
+          dress_code: data.venue_tag?.dress_code || "",
+          logo: null,
+          picture: null,
+        });
+
+        setPreview({
+          logoPreview: data.venue_photo?.logo || null,
+          picturePreview: data.venue_photo?.picture || null,
+        });
+
+        setSelectedTags(data.venue_tag?.tags || []);
+      } catch (error) {
+        console.error("Error fetching venue data:", error);
+      }
+    };
+
+    fetchVenueData();
+  }, []);
+
+  const handleImageSelect = async (setImage, previewKey) => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["photo"],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      const selectedImageUri = result.assets[0]?.uri;
+      setFormData((prev) => ({ ...prev, [previewKey]: selectedImageUri }));
+      setPreview((prev) => ({ ...prev, [`${previewKey}Preview`]: selectedImageUri }));
+    }
+  };
 
   const handleTagToggle = (tagName) => {
     setSelectedTags((prev) => {
       if (prev.includes(tagName)) {
-        return prev.filter((tag) => tag !== tagName); // Remove if already selected
+        return prev.filter((tag) => tag !== tagName);
       } else if (prev.length < 5) {
-        return [...prev, tagName]; // Add if less than 5 selected
+        return [...prev, tagName];
       }
-      return prev; // Prevent adding more than 5 tags
+      return prev;
     });
   };
 
-const handleImageSelect = async (setImage) => {
-  // Request permissions
-  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  
-  if (!permissionResult.granted) {
-    alert("Permission to access the gallery is required!");
-    return;
-  }
+  const handleSubmit = async () => {
+    try {
+      let changedFiles = 0;
 
-  console.log("Permission granted. Launching image library...");
+      if (formData.logo && preview.logoPreview !== formData.logo) {
+        changedFiles++;
+      }
+      if (formData.picture && preview.picturePreview !== formData.picture) {
+        changedFiles++;
+      }
 
-  // Launch image library
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images'], // Use 'photo' for images only
-    allowsEditing: true,
-    aspect: [4, 3],
-    quality: 1,
-  });
+      const dataToSubmit = new FormData();
+      dataToSubmit.append("dress_code", formData.dress_code);
+      if (formData.logo) dataToSubmit.append("logo", formData.logo);
+      if (formData.picture) dataToSubmit.append("picture", formData.picture);
+      selectedTags.forEach((tag) => dataToSubmit.append("tags[]", tag));
 
-  console.log("ImagePicker result:", result);
-
-  if (!result.canceled) {
-    const selectedImageUri = result.assets[0]?.uri;
-    console.log("Selected Image URI:", selectedImageUri);
-    setImage(selectedImageUri);
-  } else {
-    console.log("ImagePicker was canceled.");
-  }
-};
-
+      if (isCreating) {
+        await createVenuePhotoAndTags(dataToSubmit);
+      } else {
+        await updateVenuePhotoAndTags(dataToSubmit);
+      }
+      console.log("Form submitted successfully!");
+      nav.goBack();
+      
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -60,38 +121,65 @@ const handleImageSelect = async (setImage) => {
         This determines where & how users will see you in the app.
       </Text>
       <View style={styles.horizontalLine} />
+
+      <Text style={styles.sectionTitle}>Dress Code</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+            selectedValue={formData.dress_code}
+            onValueChange={(itemValue) =>
+              setFormData((prev) => ({ ...prev, dress_code: itemValue }))
+            }
+        >
+          <Picker.Item label="Casual" value="Casual" />
+          <Picker.Item label="Smart Casual" value="Smart Casual" />
+          <Picker.Item label="Business Casual" value="Business Casual" />
+          <Picker.Item label="Semi-Formal" value="Semi-Formal" />
+          <Picker.Item label="Jacket Required" value="Jacket Required" />
+        </Picker>
+      </View>
+      <Text style={styles.selectedText}>Selected: {formData?.dress_code || "Casual"}</Text>
       
+      <View style={styles.horizontalLine} />
+
       <Text style={styles.sectionTitle}>Upload Your Photos</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        {/* Logo Upload */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Logo</Text>
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={() => handleImageSelect((uri) => setFormData({ ...formData, logo: uri }), "logo")}
+          >
+            {preview.logoPreview ? (
+              <Image source={{ uri: preview.logoPreview }} style={styles.imagePreview} />
+            ) : (
+              <Text style={styles.uploadText}>Upload Logo</Text>
+            )}
+          </TouchableOpacity>
+        </View>
 
-      {/* Logo Upload */}
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Logo</Text>
-        <TouchableOpacity
-          style={styles.uploadButton}
-          onPress={() => handleImageSelect(setLogo)}
-        >
-          {logo ? (
-            <Image source={{ uri: logo }} style={styles.imagePreview} />
-          ) : (
-            <Text style={styles.uploadText}>Upload Logo</Text>
-          )}
-        </TouchableOpacity>
+        {/* Cover Picture Upload */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Cover Picture</Text>
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={() =>
+              handleImageSelect(
+                (uri) => setFormData({ ...formData, picture: uri }),
+                "picture"
+              )
+            }
+          >
+            {preview.picturePreview ? (
+              <Image source={{ uri: preview.picturePreview }} style={styles.imagePreview} />
+            ) : (
+              <Text style={styles.uploadText}>Upload Cover Picture</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Cover Picture Upload */}
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Cover Picture</Text>
-        <TouchableOpacity
-          style={styles.uploadButton}
-          onPress={() => handleImageSelect(setCoverPicture)}
-        >
-          {coverPicture ? (
-            <Image source={{ uri: coverPicture }} style={styles.imagePreview} />
-          ) : (
-            <Text style={styles.uploadText}>Upload Cover Picture</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+      <View style={styles.horizontalLine} />
 
       {/* Tag Selection */}
       <View>
@@ -128,6 +216,7 @@ const handleImageSelect = async (setImage) => {
             : `Selected ${selectedTags.length}/5 tags.`}
         </Text>
       </View>
+      <Button title="Submit" onPress={handleSubmit} disabled={selectedTags.length > 5} />
       </ScrollView>
     </View>
   );
@@ -154,7 +243,12 @@ const styles = StyleSheet.create({
   horizontalLine: {
     height: 1,
     backgroundColor: "#ddd",
-    marginBottom: 16,
+    marginVertical: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 500,
+    marginBottom: 10
   },
   sectionTitle: {
     fontSize: 16,
