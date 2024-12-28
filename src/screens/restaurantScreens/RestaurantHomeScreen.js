@@ -9,6 +9,7 @@ import LottieLoadingAnimation from '../../components/animations/LottieLoadingAni
 import LargeButton from "../../components/buttons/LargeButton";
 import SwipeableItem from 'react-native-swipeable-item';
 import Button from "../../components/buttons/Button";
+import { Colors, Layout } from '../../styles/Constants';
 
 
 const RestaurantHomeScreen = ({ navigation }) => {
@@ -256,14 +257,8 @@ const RestaurantHomeScreen = ({ navigation }) => {
   };  
 
 const mainColor = "#00A6FF"
-const mainColorO = "rgba(0, 166, 255, 0.5)";
-const mint = "#3EB489";
-const darkColor = "#202124";
-const charcoal = "#36454F";
 const lightgrey = "#E5E4E2";
 const red = "#FF0B0B";
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
   
 const styles = StyleSheet.create({
 container: {
@@ -273,7 +268,8 @@ container: {
 venueName: {
     fontSize: 24,
     fontWeight: 'bold',
-    margin: 16,
+    marginBottom: 16,
+    color: Colors.mainFontColor,
 },
 header: {
     marginBottom: 8,

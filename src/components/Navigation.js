@@ -21,6 +21,12 @@ import RestaurantMenuScreen from '../screens/restaurantScreens/RestaurantMenuScr
 import RestaurantOrderScreen from '../screens/restaurantScreens/RestaurantOrderScreen';
 import RestaurantSettingsScreen from '../screens/restaurantScreens/RestaurantSettingsScreen';
 
+import AppPhotosScreen from '../screens/restaurantScreens/settingsScreens/AppPhotosScreen';
+import ContactSupportScreen from '../screens/restaurantScreens/settingsScreens/ContactSupportScreen';
+import HoursOfOperationsScreen from '../screens/restaurantScreens/settingsScreens/HoursOfOperationsScreen';
+import SubscriptionScreen from '../screens/restaurantScreens/settingsScreens/SubscriptionScreen';
+import VenueInfoScreen from '../screens/restaurantScreens/settingsScreens/VenueInfoScreen';
+
 import { useAuth } from '../context/AuthContext';
 import { useRestaurantAuth } from '../context/RestaurantContext';
 
@@ -95,6 +101,19 @@ const RestaurantHomeStackNavigator = () => {
   );
 };
 
+const RestaurantSettingsStackNavigator = () => {
+  return (
+      <Stack.Navigator initialRouteName="RestaurantSettings">
+          <Stack.Screen name="RestaurantSettings" component={RestaurantSettingsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="AppPhotos" component={AppPhotosScreen} />
+          <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
+          <Stack.Screen name="HoursOfOperations" component={HoursOfOperationsScreen} />
+          <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+          <Stack.Screen name="VenueInfo" component={VenueInfoScreen} />
+      </Stack.Navigator>
+  );
+};
+
 const RestaurantTabNavigator = () => {
   return (
     <Tab.Navigator>
@@ -115,7 +134,7 @@ const RestaurantTabNavigator = () => {
           ),
           tabBarIcon: ({ focused }) => (
             <Image 
-              source={focused ? require('../images/m-circle-blue.png') : require('../images/m-circle-black.png')}  
+              source={focused ? require('../images/menu-tab-icon-blue.png') : require('../images/menu-tab-icon-black.png')}  
               style={{ 
                 width: 25, 
                 height: 25 
@@ -143,7 +162,7 @@ const RestaurantTabNavigator = () => {
           ),
           tabBarIcon: ({ focused }) => (
             <Image 
-              source={focused ? require('../images/o-circle-blue.png') : require('../images/o-circle-black.png')}  
+              source={focused ? require('../images/order-tab-icon-blue.png') : require('../images/order-tab-icon-black.png')}  
               style={{ 
                 width: 25, 
                 height: 25 
@@ -154,8 +173,9 @@ const RestaurantTabNavigator = () => {
       />
       <Tab.Screen
         name="Settings"
-        component={RestaurantSettingsScreen}
+        component={RestaurantSettingsStackNavigator}
         options={{
+          headerShown: false,
           title: 'Settings',
           tabBarLabel: ({ focused }) => (
             <Text
@@ -169,7 +189,7 @@ const RestaurantTabNavigator = () => {
           ),
           tabBarIcon: ({ focused }) => (
             <Image 
-              source={focused ? require('../images/s-circle-blue.png') : require('../images/s-circle-black.png')}  
+              source={focused ? require('../images/settings-blue.png') : require('../images/settings-black.png')}  
               style={{ 
                 width: 25, 
                 height: 25 
