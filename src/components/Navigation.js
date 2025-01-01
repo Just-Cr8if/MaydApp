@@ -107,7 +107,7 @@ const RestaurantSettingsStackNavigator = () => {
           <Stack.Screen name="RestaurantSettings" component={RestaurantSettingsScreen} options={{ headerShown: false }} />
           <Stack.Screen name="AppPhotos" component={AppPhotosScreen} options={{ headerShown: false }}/>
           <Stack.Screen name="ContactSupport" component={ContactSupportScreen} options={{ headerShown: false }}/>
-          <Stack.Screen name="HoursOfOperations" component={HoursOfOperationsScreen} options={{ headerShown: false }}/>
+          <Stack.Screen name="HoursOfOperation" component={HoursOfOperationsScreen} options={{ headerShown: false }}/>
           <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ headerShown: false }}/>
           <Stack.Screen name="VenueInformation" component={VenueInfoScreen} options={{ headerShown: false }}/>
       </Stack.Navigator>

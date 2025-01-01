@@ -111,7 +111,6 @@ const createDriverBatchedOrder = async (driverId, batchedOrderId, networkHubId, 
   }
 };
 
-
 const fetchDriverBatchedOrder = async (driverId) => {
   try {
     // Step 1: Fetch the active order for the driver from Pegasus
@@ -134,7 +133,6 @@ const fetchDriverBatchedOrder = async (driverId) => {
     console.error('Error fetching driver batched order:', error.response?.data || error.message);
   }
 };
-
 
 // Function to upload a delivery photo and associate it with orders
 const uploadDeliveryPhoto = async (photoUri, driverId, orderIds) => {

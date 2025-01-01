@@ -64,10 +64,10 @@ const RestaurantLoginScreen = ({navigation}) => {
               placeholderTextColor={'grey'}
             />
           </View>
-          <View style={{ width: '50%'}}>
+          <View style={{ width: 120 }}>
             <Text style={styles.fieldHeader}>VENUE ID</Text>
             <TextInput
-              placeholder="Enter Venue ID"
+              placeholder="Venue ID"
               value={venueId}
               style={styles.input}
               onChangeText={(text) => setVenueId(text)}

@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import Button from '../../../components/buttons/Button';
 
 const VenueInfoScreen = () => {
-  const { venue, updateVenue, schedules, getWeeklySchedules } = useRestaurantAuth();
+  const { venue, updateVenue } = useRestaurantAuth();
 
   const [formData, setFormData] = useState({
     ordering_enabled: venue?.ordering_enabled || false,
@@ -70,13 +70,13 @@ const VenueInfoScreen = () => {
 
   return (
     <View style={settingsStyles.container}>
+      <ScrollView>
       <Text style={settingsStyles.title}>Venue Information</Text>
       <Text style={settingsStyles.subtitle}>
         Make sure your address, links and contact information are up to date.
       </Text>
       <View style={settingsStyles.horizontalLine} />
 
-      <ScrollView>
         {/* Venue Name */}
         <View style={settingsStyles.formGroup}>
           <Text style={settingsStyles.label}>Name of Venue</Text>

@@ -33,27 +33,21 @@ export const RestaurantProvider = ({ children }) => {
           const parsedRestaurantInfo = JSON.parse(storedRestaurantInfo);
           const savedRole = await AsyncStorage.getItem('selectedRole');
           const savedVenue = await AsyncStorage.getItem('venue');
-          const savedRestaurantOrders = await AsyncStorage.getItem('restaurantOrders');
           if (savedRole) setSelectedRole(savedRole);
           if (parsedRestaurantInfo.token) {
             setRestaurantInfo(parsedRestaurantInfo);
             setRestaurantIsLoggedIn(true);
-          };
+          }
           if (savedVenue) {
-            const parsedSavedVenue = JSON.parse(savedVenue)
+            const parsedSavedVenue = JSON.parse(savedVenue);
             setVenue(parsedSavedVenue);
-          };
-          if (savedRestaurantOrders) {
-            const parsedRestaurantOrders = JSON.parse(savedRestaurantOrders)
-            setRestaurantOrders(parsedRestaurantOrders);
-          };
-
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
       }
     };
-
+  
     initializeAuth();
   }, []);
 
@@ -88,9 +82,6 @@ export const RestaurantProvider = ({ children }) => {
       if (response.status === 200) {
         const restaurantData = response.data;
         setRestaurantInfo(restaurantData);
-  
-        // Extract orders and save only active orders to AsyncStorage
-        await updateAsyncStorageOrders(restaurantData.orders);
   
         setVenue(restaurantData.venue);
         await AsyncStorage.setItem('venue', JSON.stringify(restaurantData.venue));
@@ -345,8 +336,6 @@ const createMenuItem = async (menuItemData, menu) => {
       if (formData.get('picture_compressed') && typeof formData.get('picture_compressed') === 'string' && formData.get('picture_compressed').startsWith('http')) {
         formData.delete('picture_compressed'); // Remove the field from formData
       }
-
-      console.log('FORM DATA', formData);
   
       // Send the processed formData to the backend
       const res = await axios.put(
@@ -418,21 +407,135 @@ const deleteMenuItem = async (menuItemId) => {
     }
   };
 
-  const getWeeklySchedules = async () => {
+  const assignScheduleToVenue = async (venueId, scheduleData) => {
     try {
-      const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/weekly_schedule/`, {
+      const response = await axios.post(`${MOBYLMENU_API_BASE_URL}/assign_schedule/`, {
+        venue_id: venueId,
+        ...scheduleData,
+      }, {
         headers: {
           Authorization: `Token ${restaurantInfo?.token}`,
         },
       });
   
-      const fetchedSchedules = response.data;
+      const createdSchedule = response.data;
+      console.log("Schedule created and assigned to venue successfully:", createdSchedule);
   
-      setSchedules(fetchedSchedules);
-  
-      return fetchedSchedules;
+      return createdSchedule;
     } catch (error) {
-      console.error("Error fetching weekly schedule:", error.response?.data || error.message);
+      console.error("Error assigning schedule to venue:", error.response?.data || error.message);
+      throw error;
+    }
+  };
+
+  const updateScheduleForVenue = async (scheduleId, venueId, scheduleData) => {
+    try {
+      const response = await axios.put(`${MOBYLMENU_API_BASE_URL}/assign_schedule/${scheduleId}/`, {
+        venue_id: venueId,
+        ...scheduleData,
+      }, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+        },
+      });
+  
+      const updatedSchedule = response.data;
+      console.log("Schedule updated and assigned to venue successfully:", updatedSchedule);
+  
+      return updatedSchedule;
+    } catch (error) {
+      console.error("Error updating schedule for venue:", error.response?.data || error.message);
+      throw error;
+    }
+  };
+
+  const getScheduleForVenue = async (venueId) => {
+    try {
+      const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/venue_schedule/${venueId}/`, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+        },
+      });
+  
+      const schedule = response.data;
+      console.log("Schedule retrieved successfully:", schedule);
+  
+      return schedule;
+    } catch (error) {
+      
+      return null;
+    }
+  };
+
+  const getVenueOrderStatus = async (venueId) => {
+    try {
+      const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/venue_order_status/${venueId}/`, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+        },
+      });
+  
+      const venueOrderStatus = response.data;
+      console.log("Venue order status retrieved successfully:", venueOrderStatus);
+  
+      return venueOrderStatus;
+    } catch (error) {
+      console.error("Error retrieving venue order status:", error.response?.data || error.message);
+      throw error;
+    }
+  };
+
+  const getRecentOrders = async (venueId) => {
+    console.log("Fetching recent orders...", restaurantInfo?.token);
+    try {
+      const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/recent_orders/${venueId}/`, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+        },
+      });
+  
+      const recentOrders = response.data;
+      console.log("Recent orders retrieved successfully:", recentOrders);
+  
+      setRestaurantOrders(recentOrders);
+    } catch (error) {
+      console.error("Error fetching recent orders:", error.response?.data || error.message);
+      throw error;
+    }
+  };
+
+  const createVenueOrderStatus = async (venueOrderStatusData) => {
+    try {
+      const response = await axios.post(`${MOBYLMENU_API_BASE_URL}/venue-order-status/`, venueOrderStatusData, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+        },
+      });
+  
+      const createdVenueOrderStatus = response.data;
+      console.log("Venue order status created successfully:", createdVenueOrderStatus);
+  
+      return createdVenueOrderStatus;
+    } catch (error) {
+      console.error("Error creating venue order status:", error.response?.data || error.message);
+      throw error;
+    }
+  };
+
+  const updateVenueOrderStatus = async (venueId, venueOrderStatusData) => {
+    try {
+      const response = await axios.put(`${MOBYLMENU_API_BASE_URL}/venue_order_status/${venueId}/`, venueOrderStatusData, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+        },
+      });
+  
+      const updatedVenueOrderStatus = response.data;
+      console.log("Venue order status updated successfully:", updatedVenueOrderStatus);
+  
+      return updatedVenueOrderStatus;
+    } catch (error) {
+      console.error("Error updating venue order status:", error.response?.data || error.message);
       throw error;
     }
   };
@@ -561,8 +664,13 @@ const deleteMenu = async (menuId) => {
       updateVenuePhotoAndTags,
       getVenuePhotoAndTags,
       updateVenue,
-      getWeeklySchedules,
-      schedules
+      updateScheduleForVenue,
+      assignScheduleToVenue,
+      getScheduleForVenue,
+      getVenueOrderStatus,
+      createVenueOrderStatus,
+      updateVenueOrderStatus,
+      getRecentOrders
        }}>
       {children}
     </RestaurantContext.Provider>

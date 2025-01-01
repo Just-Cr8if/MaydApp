@@ -35,11 +35,6 @@ const RestaurantOrderScreen = ({ navigation }) => {
             }
         );
     
-        console.log("SSE Connection initialized:", eventSource);
-    
-        // Log the connection's readyState
-        console.log("SSE readyState (initial):", eventSource?.eventSource?.readyState);
-    
         // Listen for the 'open' event to confirm the connection
         eventSource.onopen = () => {
             console.log("SSE connection opened");

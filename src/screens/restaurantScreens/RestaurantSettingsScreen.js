@@ -11,7 +11,8 @@ import { useNavigation } from "@react-navigation/native";
 
 const RestaurantSettingsScreen = ({navigation}) => {
     const { restaurantLogout } = useRestaurantAuth();
-    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [estimatedWaitTime, setEstimatedWaitTime] = useState('');
+    const [additionalWaitTime, setAdditionalWaitTime] = useState('');
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [modalTitle, setModalTitle] = useState('');
     const [modalContent, setModalContent] = useState(null);
@@ -19,6 +20,7 @@ const RestaurantSettingsScreen = ({navigation}) => {
     const nav = useNavigation();
 
   const handleLogout = () => {
+    setIsModalVisible(false);
     restaurantLogout();
   };
 
@@ -26,6 +28,19 @@ const RestaurantSettingsScreen = ({navigation}) => {
     setModalTitle(title);
     setModalContent(content);
     setIsModalVisible(true);
+  };
+
+  const handlePrepTimeSubmit = async (data) => {
+    try {
+      await updateVenueOrderStatus(venue.id, {
+        estimated_wait_time: data.estimatedWaitTime,
+        additional_wait_time: data.additionalWaitTime,
+      });
+      setIsModalVisible(false);
+      Alert.alert('Success', 'Prep time updated successfully.');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update prep time. Please try again.');
+    }
   };
 
   return (
@@ -51,7 +66,21 @@ const RestaurantSettingsScreen = ({navigation}) => {
           onPress={() =>
             handleOptionPress(
               "Set Prep Time",
-              <Text style={styles.content}>Here you can set your prep time.</Text>
+              <View style={styles.formContainer}>
+                <Text style={styles.label}>Estimated Wait Time (minutes):</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  onChangeText={(value) => setEstimatedWaitTime(value)}
+                />
+                <Text style={styles.label}>Additional Wait Time (minutes):</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  onChangeText={(value) => setAdditionalWaitTime(value)}
+                />
+                <Button title="Submit" onPress={() => handlePrepTimeSubmit({ estimatedWaitTime, additionalWaitTime })} />
+              </View>
             )
           }
         />

@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+import React, { useContext, useState, useEffect, useRef, use } from "react";
 import { View, Text, Pressable, TextInput, TouchableOpacity, Animated,
     StyleSheet, FlatList, SafeAreaView, Image, Appearance, useColorScheme,
   Dimensions, Modal } from 'react-native';
@@ -14,7 +14,7 @@ import { Colors, Layout } from '../../styles/Constants';
 
 const RestaurantHomeScreen = ({ navigation }) => {
     const { venue, restaurantOrders, setRestaurantOrders, updateAsyncStorageOrders,
-        updateOrderStatus, getMenuItems, displayedMenuItems,
+      getRecentOrders, getMenuItems, displayedMenuItems,
         getOtherMenus, getOtherMenuItems, setDisplayedMenuItems,
         menus, setMenus, deleteMenuItem
     } = useRestaurantAuth();
@@ -25,6 +25,17 @@ const RestaurantHomeScreen = ({ navigation }) => {
     const [selectedMenu, setSelectedMenu] = useState(venue?.menu);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [itemIdToDelete, setItemIdToDelete] = useState(null);
+
+    useEffect(() => {
+      const fetchOrderData = async () => {
+        try {
+          await getRecentOrders(venue?.id);
+        } catch (error) {
+          console.error('Error fetching orders:', error);
+        }
+      };
+      fetchOrderData();
+    }, [venue]);
 
     // Populate menus with the venue's menu and fetched other menus
     useEffect(() => {
