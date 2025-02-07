@@ -92,13 +92,19 @@ export const RestaurantProvider = ({ children }) => {
       } else {
         setErrorMessage("Invalid credentials. Check your email, password, and venue ID.");
       }
-      setRestaurantIsLoggingIn(false);
     } catch (error) {
+  
+      // Check for a 400 error with specific message
+      if (error.response && error.response.status === 400 && error.response.data.detail === "venue_id is required for venue owners.") {
+        setErrorMessage("Venue ID is required for venue owners.");
+      } else {
+        setErrorMessage("Invalid credentials. Check your email, password, and venue ID.");
+      }
+    } finally {
       setRestaurantIsLoggingIn(false);
-      setErrorMessage("Invalid credentials. Check your email, password, and venue ID.");
-      return;
     }
   };
+  
 
   const getMenuItems = async (venue) => {
     if (!venue || !venue.id) {
@@ -486,7 +492,6 @@ const deleteMenuItem = async (menuItemId) => {
   };
 
   const getRecentOrders = async (venueId) => {
-    console.log("Fetching recent orders...", restaurantInfo?.token);
     try {
       const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/recent_orders/${venueId}/`, {
         headers: {
@@ -495,7 +500,6 @@ const deleteMenuItem = async (menuItemId) => {
       });
   
       const recentOrders = response.data;
-      console.log("Recent orders retrieved successfully:", recentOrders);
   
       setRestaurantOrders(recentOrders);
     } catch (error) {

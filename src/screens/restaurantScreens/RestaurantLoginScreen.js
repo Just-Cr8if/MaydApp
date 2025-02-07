@@ -16,9 +16,6 @@ const RestaurantLoginScreen = ({navigation}) => {
     const [venueId, setVenueId] = useState(null);
     const { width } = Dimensions.get('window');
     const isLargeScreen = width >= 768;
-    const [loading, setLoading] = useState(false);
-
-    const loginAnimation = useRef(new Animated.Value(0)).current;
 
     const openLink = async (url) => {
         if (await Linking.canOpenURL(url)) {
@@ -64,12 +61,12 @@ const RestaurantLoginScreen = ({navigation}) => {
               placeholderTextColor={'grey'}
             />
           </View>
-          <View style={{ width: 120 }}>
-            <Text style={styles.fieldHeader}>VENUE ID</Text>
+          <View style={{ width: '100%' }}>
+            <Text style={styles.fieldHeader}>VENUE ID - OWNER ONLY</Text>
             <TextInput
               placeholder="Venue ID"
               value={venueId}
-              style={styles.input}
+              style={styles.smallInput}
               onChangeText={(text) => setVenueId(text)}
               placeholderTextColor={'grey'}
             />
@@ -148,7 +145,7 @@ const styles = StyleSheet.create({
         width: screenWidth * .9
     },
     input: {
-        marginBottom: 12,
+        marginBottom: 20,
         borderWidth: 1,
         borderColor: '#000000',
         borderRadius: 10,
@@ -169,6 +166,16 @@ const styles = StyleSheet.create({
         fontSize: 18,
         backgroundColor: darkColor
     },
+    smallInput: {
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: '#000000',
+      borderRadius: 10,
+      paddingLeft: 15,
+      height: 50,
+      width: 180,
+      fontSize: 18
+    },
     pageHeaderDark: {
       color: 'white',
       fontSize: 30,
@@ -186,13 +193,15 @@ const styles = StyleSheet.create({
       color: 'grey',
       marginBottom: 10,
       marginLeft: 5,
-      alignSelf: 'flex-start'
+      alignSelf: 'flex-start',
+      fontWeight: 700
     },
     fieldHeader: {
       color: 'grey',
       marginBottom: 10,
       marginLeft: 5,
-      alignSelf: 'flex-start'
+      alignSelf: 'flex-start',
+      fontWeight: 700
     },
     text: {
         color: '#202124',
