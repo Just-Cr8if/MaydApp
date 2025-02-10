@@ -67,14 +67,14 @@ const RestaurantOrderScreen = ({ navigation }) => {
         // Log errors
         eventSource.onerror = (error) => {
             console.error("SSE Error:", error.message || error);
-            logProgress(); // Log readyState after error
+            logProgress();
         };
     
         // Cleanup on unmount
         return () => {
             console.log("Closing SSE connection");
             eventSource.close();
-            logProgress(); // Log readyState after closing
+            logProgress();
         };
     }, []);
     
@@ -386,6 +386,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
                     renderItem={renderOrder}
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={renderEmptyComponent}
+                    showsVerticalScrollIndicator={false}
                 />
 
             </SafeAreaView>
