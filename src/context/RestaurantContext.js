@@ -22,7 +22,7 @@ export const RestaurantProvider = ({ children }) => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [menus, setMenus] = useState([]);
   const [allTags, setAllTags] = useState([]);
-  const [schedules, setSchedules] = useState([]);
+  const [teamMemberRole, setTeamMemberRole] = useState(null);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -36,6 +36,9 @@ export const RestaurantProvider = ({ children }) => {
           if (savedRole) setSelectedRole(savedRole);
           if (parsedRestaurantInfo.token) {
             setRestaurantInfo(parsedRestaurantInfo);
+            if (parsedRestaurantInfo.team_member) {
+              setTeamMemberRole(parsedRestaurantInfo.team_member.role)
+            }
             setRestaurantIsLoggedIn(true);
           }
           if (savedVenue) {
@@ -177,14 +180,17 @@ export const RestaurantProvider = ({ children }) => {
   };
 
   const getVenuePhotoAndTags = async () => {
+    console.log(restaurantInfo);
     try {
       const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/venue_photo_tag/`, {
         headers: {
           Authorization: `Token ${restaurantInfo?.token}`,
         },
       });
+
+      console.log(response);
       
-      return response.data; // Returns the combined data for VenuePhoto and VenueTag
+      return response.data;
     } catch (error) {
       console.error('Error fetching venue photos and tags:', error.response?.data || error.message);
       throw error; // Ensure the error propagates for further handling
@@ -195,6 +201,7 @@ export const RestaurantProvider = ({ children }) => {
     setRestaurantIsLoggedIn(false);
     setRestaurantInfo(null);
     setRestaurantOrders([]);
+    setTeamMemberRole(null);
     setVenue(null);
 
     await AsyncStorage.removeItem('restaurantInfo');
@@ -639,6 +646,7 @@ const deleteMenu = async (menuId) => {
     <RestaurantContext.Provider value={{ 
       restaurantIsLoggedIn, 
       restaurantIsLoggingIn,
+      restaurantInfo,
       selectedRole,
       setSelectedRole,
       restaurantLogin, 
@@ -674,7 +682,8 @@ const deleteMenu = async (menuId) => {
       getVenueOrderStatus,
       createVenueOrderStatus,
       updateVenueOrderStatus,
-      getRecentOrders
+      getRecentOrders,
+      teamMemberRole
        }}>
       {children}
     </RestaurantContext.Provider>

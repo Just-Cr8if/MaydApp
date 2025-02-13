@@ -10,7 +10,9 @@ import { useNavigation } from "@react-navigation/native";
 import { Colors } from "../../styles/Constants";
 
 const RestaurantSettingsScreen = () => {
-  const { venue, updateVenueOrderStatus, restaurantLogout } = useRestaurantAuth();
+  const { venue, updateVenueOrderStatus, restaurantLogout, restaurantInfo,
+    teamMemberRole
+   } = useRestaurantAuth();
   const [estimatedWaitTime, setEstimatedWaitTime] = useState('');
   const [additionalWaitTime, setAdditionalWaitTime] = useState('');
   const [pickupInstructions, setPickupInstructions] = useState('');
@@ -19,6 +21,8 @@ const RestaurantSettingsScreen = () => {
   const [modalContent, setModalContent] = useState(null);
   const venueOrderStatus = venue?.venue_order_status;
   const nav = useNavigation();
+
+  console.log('teamMemberRole', teamMemberRole);
 
   // Ensure venueOrderStatus exists before setting initial values
   useEffect(() => {
@@ -107,26 +111,32 @@ const RestaurantSettingsScreen = () => {
         title="Set Prep Time"
         imageSource={require("../../images/prep-time-icon.png")}
         onPress={() => handleOptionPress("Set Prep Time", renderPrepTimeForm())}
+        disabled={teamMemberRole && teamMemberRole === 'team_member'}
       />
+      
       <SettingsOptionButton
         title="App Photos"
         imageSource={require("../../images/photo-icon.png")}
         onPress={() => nav.navigate('AppPhotos')}
+        disabled={teamMemberRole && teamMemberRole === 'team_member'}
       />
       <SettingsOptionButton
         title="Venue Information"
         imageSource={require("../../images/venue-icon.png")}
         onPress={() => nav.navigate('VenueInformation')}
+        disabled={teamMemberRole && teamMemberRole === 'team_member'}
       />
       <SettingsOptionButton
         title="Hours of Operation"
         imageSource={require("../../images/schedule-icon.png")}
         onPress={() => nav.navigate('HoursOfOperation')}
+        disabled={teamMemberRole && teamMemberRole === 'team_member'}
       />
       <SettingsOptionButton
         title="Subscription"
         imageSource={require("../../images/subscription-icon.png")}
         onPress={() => nav.navigate('Subscription')}
+        disabled={teamMemberRole && teamMemberRole === 'team_member'}
       />
       <SettingsOptionButton
         title="Password Reset"

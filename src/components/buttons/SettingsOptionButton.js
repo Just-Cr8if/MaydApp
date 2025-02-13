@@ -4,18 +4,18 @@ import { View, Text, Button, TextInput, TouchableOpacity, Animated,
   Dimensions, TouchableWithoutFeedback} from 'react-native';
 import { Colors } from "../../styles/Constants";
 
-const SettingsOptionButton = ({ title, imageSource, onPress }) => {
+const SettingsOptionButton = ({ title, imageSource, onPress, disabled }) => {
   return (
     <TouchableWithoutFeedback
-        onPress={onPress}
+        onPress={disabled ? null : onPress}
     >
-        <View style={styles.optionButton}>
+        <View style={[styles.optionButton, disabled && styles.disabledOptionButton]}>
             <View style={styles.optionButtonImageAndTextContainer}>
                 <Image 
                     source={imageSource}
                     style={{width: 25, height: 25, marginRight: 16}}
                 />
-                <Text style={styles.optionButtonText}>{title}</Text>
+                <Text style={[styles.optionButtonText, disabled && styles.disabledText]}>{title}</Text>
             </View>
             <View>
                 <Image 
@@ -45,5 +45,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: Colors.mainFontColor,
         marginLeft: 16,
-    }
+    },
+    disabledOptionButton: {
+        opacity: 0.6,
+    },
+    disabledText: {
+        color: '#a0a0a0',
+    },
 });
