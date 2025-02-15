@@ -3,6 +3,7 @@ import { View, Text, Button, Pressable, TouchableOpacity, Animated,
     StyleSheet, FlatList, SafeAreaView, Image, Appearance, useColorScheme,
   Dimensions, Modal, TextInput
  } from 'react-native';
+ import useWebSocket, { ReadyState } from 'react-native-use-websocket';
 import { useRestaurantAuth } from "../../context/RestaurantContext";
 import SwipeableItem from 'react-native-swipeable-item';
 import RNEventSource from "react-native-event-source";
@@ -11,7 +12,7 @@ import { MOBYLMENU_API_BASE_URL } from "../../config";
 
 const RestaurantOrderScreen = ({ navigation }) => {
     const { venue, restaurantOrders, setRestaurantOrders, updateAsyncStorageOrders,
-        updateOrderStatus
+        updateOrderStatus, restaurantInfo, tableRequests, setTableRequests, patchTableRequest
      } = useRestaurantAuth();
     const [orderType, setOrderType] = useState('All');
     const [selectedOrderId, setSelectedOrderId] = useState(null); // Track selected order
@@ -21,63 +22,126 @@ const RestaurantOrderScreen = ({ navigation }) => {
     const [isDeclineModalVisible, setDeclineModalVisible] = useState(false);
     const [declineReason, setDeclineReason] = useState('');
     const [declineOrderId, setDeclineOrderId] = useState(null);
+    const [showTableRequests, setShowTableRequests] = useState(false);
     
+    // Ensure token and venue are available.
+    const token = restaurantInfo?.token;
+    const venueId = venue?.id;
+
+    // --- Orders WebSocket ---
+    const ordersWsUrl =
+        token && venueId
+        ? `ws://localhost:8000/ws/orders?token=${token}&venue=${venueId}`
+        : null;
+
+    const {
+        sendMessage: sendOrdersMessage,
+        lastMessage: ordersLastMessage,
+        readyState: ordersReadyState,
+    } = useWebSocket(ordersWsUrl, {
+        onOpen: () => console.log("Orders WebSocket connection opened"),
+        onClose: () => console.log("Orders WebSocket connection closed"),
+        onError: (error) => console.error("Orders WebSocket error:", error),
+        shouldReconnect: () => true,
+    });
+
+    const ordersConnectionStatus = {
+        [ReadyState.CONNECTING]: "Connecting",
+        [ReadyState.OPEN]: "Open",
+        [ReadyState.CLOSING]: "Closing",
+        [ReadyState.CLOSED]: "Closed",
+        [ReadyState.UNINSTANTIATED]: "Uninstantiated",
+    }[ordersReadyState];
+
     useEffect(() => {
-        // Initialize the SSE connection
-        const eventSource = new RNEventSource(
-            `${MOBYLMENU_API_BASE_URL}/sse/?venue_id=${venue?.id}`,
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Cache-Control": "no-cache",
-                    "Access-Control-Allow-Origin": "*",
-                },
+        if (ordersLastMessage !== null) {
+        try {
+            const orderData = JSON.parse(ordersLastMessage.data);
+            // Only process certain statuses.
+            if (
+            orderData.status !== "submitted" &&
+            orderData.status !== "canceled"
+            ) {
+            console.log("Ignoring order update with status:", orderData.status);
+            return;
             }
-        );
-    
-        // Listen for the 'open' event to confirm the connection
-        eventSource.onopen = () => {
-            console.log("SSE connection opened");
-        };
-    
-        // Log any progress or state changes
-        const logProgress = () => {
-            console.log("SSE readyState (progress):", eventSource?.eventSource?.readyState);
-        };
-    
-        // Check for 'message' events
-        eventSource.addEventListener("message", (event) => {
-            console.log("Raw SSE message received:", event);
-            try {
-                const newOrder = JSON.parse(event.data);
-                console.log("Parsed message data:", newOrder);
-    
-                // Update the state and async storage
-                setRestaurantOrders((prevOrders) => {
-                    const updatedOrders = [...prevOrders, newOrder];
-                    console.log("Updated restaurant orders:", updatedOrders);
-                    updateAsyncStorageOrders(updatedOrders);
-                    return updatedOrders;
-                });
-            } catch (error) {
-                console.error("Error parsing SSE message:", error);
+            console.log("New order received:", orderData);
+
+            setRestaurantOrders((prevOrders) => {
+            const orderIndex = prevOrders.findIndex(
+                (order) => order.id === orderData.id
+            );
+            if (orderIndex !== -1) {
+                const updatedOrders = [...prevOrders];
+                updatedOrders[orderIndex] = {
+                ...updatedOrders[orderIndex],
+                ...orderData,
+                };
+                return updatedOrders;
+            } else {
+                return [...prevOrders, orderData];
             }
-        });
-    
-        // Log errors
-        eventSource.onerror = (error) => {
-            console.error("SSE Error:", error.message || error);
-            logProgress();
-        };
-    
-        // Cleanup on unmount
-        return () => {
-            console.log("Closing SSE connection");
-            eventSource.close();
-            logProgress();
-        };
-    }, []);
-    
+            });
+        } catch (err) {
+            console.error("Error parsing order message:", err);
+        }
+        }
+    }, [ordersLastMessage, setRestaurantOrders]);
+
+    // --- Table Requests WebSocket ---
+    const tableRequestsWsUrl =
+        token && venueId
+        ? `ws://localhost:8000/ws/table_requests?token=${token}&venue=${venueId}`
+        : null;
+
+    const {
+        sendMessage: sendTableRequestsMessage,
+        lastMessage: tableRequestsLastMessage,
+        readyState: tableRequestsReadyState,
+    } = useWebSocket(tableRequestsWsUrl, {
+        onOpen: () =>
+        console.log("Table Requests WebSocket connection opened"),
+        onClose: () =>
+        console.log("Table Requests WebSocket connection closed"),
+        onError: (error) =>
+        console.error("Table Requests WebSocket error:", error),
+        shouldReconnect: () => true,
+    });
+
+    const tableRequestsConnectionStatus = {
+        [ReadyState.CONNECTING]: "Connecting",
+        [ReadyState.OPEN]: "Open",
+        [ReadyState.CLOSING]: "Closing",
+        [ReadyState.CLOSED]: "Closed",
+        [ReadyState.UNINSTANTIATED]: "Uninstantiated",
+    }[tableRequestsReadyState];
+
+    useEffect(() => {
+        if (tableRequestsLastMessage !== null) {
+        try {
+            const tableRequestData = JSON.parse(tableRequestsLastMessage.data);
+            console.log("New table request received:", tableRequestData);
+
+            setTableRequests((prevRequests) => {
+            const reqIndex = prevRequests.findIndex(
+                (req) => req.id === tableRequestData.id
+            );
+            if (reqIndex !== -1) {
+                const updatedRequests = [...prevRequests];
+                updatedRequests[reqIndex] = {
+                ...updatedRequests[reqIndex],
+                ...tableRequestData,
+                };
+                return updatedRequests;
+            } else {
+                return [...prevRequests, tableRequestData];
+            }
+            });
+        } catch (err) {
+            console.error("Error parsing table request message:", err);
+        }
+        }
+    }, [tableRequestsLastMessage, setTableRequests]);
 
     // Memoized counts for each order type
     const orderCounts = useMemo(() => {
@@ -112,7 +176,6 @@ const RestaurantOrderScreen = ({ navigation }) => {
         return item.order_type; // Fallback in case order_type doesn't match
     };
     
-
     const handleAccept = (orderId) => {
         updateOrderStatus(orderId, 'accepted');
       };
@@ -124,6 +187,12 @@ const RestaurantOrderScreen = ({ navigation }) => {
 
     const handleClose = (orderId) => {
         updateOrderStatus(orderId, 'closed');
+    };
+
+    const handleFulfill = async (tableRequestId) => {
+        await patchTableRequest(venue.id, tableRequestId, true);
+
+        console.log("Table request fulfilled:", tableRequests?.length);
     };
 
     const confirmDecline = () => {
@@ -315,8 +384,38 @@ const RestaurantOrderScreen = ({ navigation }) => {
             </SwipeableItem>
         );
     };
-           
 
+    const renderTableRequests = ({ item }) => {
+        // Render SwipeableItem for other statuses
+        return (
+            <SwipeableItem
+                key={item.id}
+                item={item}
+                overSwipe={20}
+                snapPointsLeft={[100]} // Left swipe for "close" when accepted
+                renderUnderlayLeft={
+                    () => <LeftCloseUnderlay onPress={() => handleFulfill(item.id)} />
+                }
+            >
+                <Pressable
+                    style={styles.orderContainer}
+                >
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={[styles.customerName, { marginRight:10 }]}>Table</Text>
+                        <Text style={styles.customerName}>{item?.table?.table_number}</Text>
+                    </View>
+                    <Text style={styles.submittedTime}>
+                        Table Request:{' '}
+                        {new Date(item.created_at).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                        })}
+                    </Text>
+                </Pressable>
+            </SwipeableItem>
+        );
+    };
+           
     return (
         <View style={styles.container}>
             <SafeAreaView>
@@ -371,23 +470,48 @@ const RestaurantOrderScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity
-                    style={styles.kitchenViewButton}
-                    onPress={() => setKitchenView((prev) => !prev)}
-                >
-                    <Text style={styles.kitchenViewText}>
-                        {kitchenView ? 'Exit Kitchen View' : 'Kitchen View'}
-                    </Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <TouchableOpacity
+                        style={styles.kitchenViewButton}
+                        onPress={() => setKitchenView((prev) => !prev)}
+                    >
+                        <Text style={styles.kitchenViewText}>
+                            {kitchenView ? 'Exit Kitchen View' : 'Kitchen View'}
+                        </Text>
+                    </TouchableOpacity>
 
+
+                    <TouchableOpacity
+                        style={styles.kitchenViewButton}
+                        onPress={() => setShowTableRequests((prev) => !prev)}
+                    >
+                        <Text style={styles.kitchenViewText}>
+                            {showTableRequests ? 'Hide Requests' : 'Show Requests'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                {showTableRequests ? (
                 <FlatList
-                    data={filteredOrders}
+                    data={tableRequests}
                     keyExtractor={(item) => item.id.toString()}
-                    renderItem={renderOrder}
+                    renderItem={renderTableRequests}
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={renderEmptyComponent}
                     showsVerticalScrollIndicator={false}
                 />
+                )
+                :
+                (
+                    <FlatList
+                        data={filteredOrders}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={renderOrder}
+                        contentContainerStyle={styles.listContainer}
+                        ListEmptyComponent={renderEmptyComponent}
+                        showsVerticalScrollIndicator={false}
+                    />
+                )}
 
             </SafeAreaView>
         </View>
@@ -455,7 +579,6 @@ const styles = StyleSheet.create({
         marginTop: 15
     },
     kitchenViewButton: {
-        alignSelf: 'flex-end',
         backgroundColor: mainColor,
         paddingVertical: 6,
         paddingHorizontal: 6,

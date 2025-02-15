@@ -16,7 +16,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
     const { venue, restaurantOrders, setRestaurantOrders, updateAsyncStorageOrders,
       getRecentOrders, getMenuItems, displayedMenuItems,
         getOtherMenus, getOtherMenuItems, setDisplayedMenuItems,
-        menus, setMenus, deleteMenuItem
+        menus, setMenus, deleteMenuItem, getTableRequests
     } = useRestaurantAuth();
   
     const { width } = Dimensions.get('window');
@@ -30,6 +30,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
       const fetchOrderData = async () => {
         try {
           await getRecentOrders(venue?.id);
+          await getTableRequests(venue?.id);
         } catch (error) {
           console.error('Error fetching orders:', error);
         }

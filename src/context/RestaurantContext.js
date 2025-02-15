@@ -16,6 +16,7 @@ export const RestaurantProvider = ({ children }) => {
   const [selectedRole, setSelectedRole] = useState("Restaurant");
   const [restaurantIsLoggingIn, setRestaurantIsLoggingIn] = useState(null);
   const [restaurantOrders, setRestaurantOrders] = useState([]);
+  const [tableRequests, setTableRequests] = useState([]);
   const [venue, setVenue] = useState(null);
   const [menuItemsLoading, setMenuItemsLoading] = useState(false);
   const [displayedMenuItems, setDisplayedMenuItems] = useState(false);
@@ -515,6 +516,56 @@ const deleteMenuItem = async (menuItemId) => {
     }
   };
 
+  const getTableRequests = async (venueId) => {
+    try {
+      const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/table_requests/${venueId}/`, {
+        headers: {
+          Authorization: `Token ${restaurantInfo?.token}`,
+        },
+      });
+  
+      const fetchedTableRequests = response.data;
+  
+      setTableRequests(fetchedTableRequests);
+      
+    } catch (error) {
+      console.error("Error fetching fetchedTableRequests:", error.response?.data || error.message);
+      throw error;
+    }
+  };
+  
+  const patchTableRequest = async (venueId, tableRequestId, fulfilled) => {
+
+    console.log(venueId, tableRequestId, fulfilled);
+    try {
+      const response = await axios.patch(
+        `${MOBYLMENU_API_BASE_URL}/table_requests/${venueId}/`,
+        {
+          table_request_id: tableRequestId,
+          fulfilled: fulfilled,
+        },
+        {
+          headers: {
+            Authorization: `Token ${restaurantInfo?.token}`,
+          },
+        }
+      );
+  
+      // Remove the table request from local state since it's now fulfilled.
+      setTableRequests((prevRequests) =>
+        prevRequests.filter((req) => req.id !== tableRequestId)
+      );
+  
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error updating table request:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  };  
+
   const createVenueOrderStatus = async (venueOrderStatusData) => {
     try {
       const response = await axios.post(`${MOBYLMENU_API_BASE_URL}/venue-order-status/`, venueOrderStatusData, {
@@ -657,6 +708,8 @@ const deleteMenu = async (menuId) => {
       venue,
       restaurantOrders,
       setRestaurantOrders,
+      tableRequests,
+      setTableRequests,
       updateAsyncStorageOrders,
       updateOrderStatus,
       getMenuItems,
@@ -683,6 +736,10 @@ const deleteMenu = async (menuId) => {
       createVenueOrderStatus,
       updateVenueOrderStatus,
       getRecentOrders,
+      getTableRequests,
+      patchTableRequest,
+      tableRequests,
+      setTableRequests,
       teamMemberRole
        }}>
       {children}
