@@ -7,7 +7,7 @@ import { View, Text, Button, Pressable, TouchableOpacity, Animated,
 import { useRestaurantAuth } from "../../context/RestaurantContext";
 import SwipeableItem from 'react-native-swipeable-item';
 import RNEventSource from "react-native-event-source";
-import { MOBYLMENU_API_BASE_URL } from "../../config";
+import { MOBYLMENU_API_BASE_URL, WEBSOCKET_URL } from "../../config";
 
 
 const RestaurantOrderScreen = ({ navigation }) => {
@@ -31,7 +31,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
     // --- Orders WebSocket ---
     const ordersWsUrl =
         token && venueId
-        ? `ws://localhost:8000/ws/orders?token=${token}&venue=${venueId}`
+        ? `${WEBSOCKET_URL}orders?token=${token}&venue=${venueId}`
         : null;
 
     const {
@@ -83,7 +83,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
             }
             });
         } catch (err) {
-            console.error("Error parsing order message:", err);
+            
         }
         }
     }, [ordersLastMessage, setRestaurantOrders]);
@@ -91,7 +91,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
     // --- Table Requests WebSocket ---
     const tableRequestsWsUrl =
         token && venueId
-        ? `ws://localhost:8000/ws/table_requests?token=${token}&venue=${venueId}`
+        ? `${WEBSOCKET_URL}table_requests?token=${token}&venue=${venueId}`
         : null;
 
     const {
@@ -138,7 +138,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
             }
             });
         } catch (err) {
-            console.error("Error parsing table request message:", err);
+            
         }
         }
     }, [tableRequestsLastMessage, setTableRequests]);
@@ -402,7 +402,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
                 >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text style={[styles.customerName, { marginRight:10 }]}>Table</Text>
-                        <Text style={styles.customerName}>{item?.table?.table_number}</Text>
+                        <Text style={styles.customerName}>{item?.table?.table_number || item?.venue_table_id}</Text>
                     </View>
                     <Text style={styles.submittedTime}>
                         Table Request:{' '}
