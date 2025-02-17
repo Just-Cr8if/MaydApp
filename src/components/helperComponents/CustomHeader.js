@@ -28,8 +28,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 5,
     height: 50,
-    borderBottomColor: charcoal,
-    borderBottomWidth: 0.2,
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 0.5,
     width: screenWidth,
     marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     backgroundColor: 'white'
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   title: {
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontSize: 16,
   },
 });

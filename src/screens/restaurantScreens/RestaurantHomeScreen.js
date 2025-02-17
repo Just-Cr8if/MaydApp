@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useRef, use } from "react";
 import { View, Text, Pressable, TextInput, TouchableOpacity, Animated,
-    StyleSheet, FlatList, SafeAreaView, Image, Appearance, useColorScheme,
+  StyleSheet, FlatList, SafeAreaView, Image, Appearance, useColorScheme,
   Dimensions, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
@@ -10,13 +10,15 @@ import LargeButton from "../../components/buttons/LargeButton";
 import SwipeableItem from 'react-native-swipeable-item';
 import Button from "../../components/buttons/Button";
 import { Colors, Layout } from '../../styles/Constants';
+import RNPickerSelect from "react-native-picker-select";
+import CustomDropdown from "../../components/helperComponents/CustomDropdown";
 
 
 const RestaurantHomeScreen = ({ navigation }) => {
     const { venue, restaurantOrders, setRestaurantOrders, updateAsyncStorageOrders,
       getRecentOrders, getMenuItems, displayedMenuItems,
-        getOtherMenus, getOtherMenuItems, setDisplayedMenuItems,
-        menus, setMenus, deleteMenuItem, getTableRequests
+      getOtherMenus, getOtherMenuItems, setDisplayedMenuItems,
+      menus, setMenus, deleteMenuItem, getTableRequests
     } = useRestaurantAuth();
   
     const { width } = Dimensions.get('window');
@@ -64,7 +66,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
         <TouchableOpacity onPress={onPress}
         style={[styles.underlayAction, styles.alignRight, { backgroundColor: red }]}
         >
-            <Text style={styles.actionText}>Delete</Text>
+          <Text style={styles.actionText}>Delete</Text>
         </TouchableOpacity>
     );
 
@@ -139,28 +141,23 @@ const RestaurantHomeScreen = ({ navigation }) => {
     const MenuItemCard = ({ item }) => {
       return (
         <SwipeableItem
-            key={item.id}
-            item={item}
-            overSwipe={20}
-            snapPointsRight={[100]}
-            renderUnderlayRight={() => (
-                <RightUnderlay onPress={() => handleDelete(item.id)} />
-            )}
+          key={item.id}
+          item={item}
+          overSwipe={20}
+          snapPointsRight={[100]}
+          renderUnderlayRight={() => (
+          <RightUnderlay onPress={() => handleDelete(item.id)} />
+          )}
         >
-            <Pressable
-                style={[
-                    styles.card
-                ]}
-                onPress={() => nav.navigate('RestaurantMenuItem', { menuItem: item, venue: venue, categories: categories })}
-            >
-                <View style={styles.details}>
-                    <Text style={styles.name}>{item.name}</Text>
-                    <Text style={styles.description} numberOfLines={2}>
-                        {item.description}
-                    </Text>
-                    <Text style={styles.price}>${item.price}</Text>
-                </View>
-            </Pressable>
+          <Pressable
+            style={[styles.card]}
+            onPress={() => nav.navigate('RestaurantMenuItem', { menuItem: item, venue: venue, categories: categories })}>
+            <View style={styles.details}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
+              <Text style={styles.price}>${item.price}</Text>
+            </View>
+          </Pressable>
         </SwipeableItem>
       );
     };
@@ -189,18 +186,22 @@ const RestaurantHomeScreen = ({ navigation }) => {
   
       return <MenuItemCard item={item.data} />;
     };
+
+    useEffect(() => {
+      console.log("Menus Data:", menus);
+    }, [menus]);
+    
   
     return (
       <View style={styles.container}>
         <SafeAreaView>
         <Modal
-            visible={isDeleteModalVisible}
-            transparent={true}
-            animationType="slide"
-        >
-            <View style={styles.modalContainer}>
-                <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>Are you sure you want to delete this item?</Text>
+          visible={isDeleteModalVisible}
+          transparent={true}
+          animationType="slide">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Are you sure you want to delete this item?</Text>
                     <Text style={styles.modalSubtitle}>This cannot be undone</Text>
                     <View style={styles.buttonRow}>
                         <Button title="Cancel" onPress={cancelDelete} />
@@ -217,36 +218,20 @@ const RestaurantHomeScreen = ({ navigation }) => {
             ListHeaderComponent={
                 <View>
                   <Text style={styles.venueName}>{venue?.venue_name}</Text>
+                  <Text style={styles.headerText}>Menus</Text>
                     <View style={styles.actionButtonContainer}>
-                    <View style={{ width: '100%', paddingLeft: 10, marginBottom: 15 }}>
-                        <Text style={styles.headerText}>Menus</Text>
-                    </View>
-                    {menus.map((item, index) => (
-                    <TouchableOpacity
-                        key={`menu-${index}`}
-                        style={[
-                        styles.actionButton,
-                        selectedMenu.id === item.id && styles.selectedMenu,
-                        ]}
-                        onPress={() => handleMenuSelect(item)}
-                    >
-                        <Text
-                        style={[
-                            styles.actionButtonText,
-                            selectedMenu.id === item.id && styles.selectedMenuText,
-                        ]}
-                        >
-                        {item.name}
-                        </Text>
-                    </TouchableOpacity>
-                    ))}
+                    <CustomDropdown 
+                      menus={menus} 
+                      selectedMenu={selectedMenu} 
+                      handleMenuSelect={handleMenuSelect} 
+                    />
                     </View>
                     <View style={styles.actionButtonContainerTop}>
                         <TouchableOpacity
                             onPress={() => nav.navigate('RestaurantMenuItem', { venue: venue, categories: categories })}
                             style={styles.actionButton}
                         >
-                            <Text style={styles.actionButtonText}>Add A Menu Item</Text>
+                          <Text style={styles.actionButtonText}>Add Menu Item</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.actionButton}
@@ -261,7 +246,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
               item.type === 'header' ? `header-${item.category}` : `item-${item.data.id}`
             }
             renderItem={renderItem}
-            contentContainerStyle={styles.listContainer}
+            contentContainerStyle={[styles.listContainer, { overflow: 'visible' }]}
           />
         </SafeAreaView>
       </View>
@@ -273,33 +258,34 @@ const lightgrey = "#E5E4E2";
 const red = "#FF0B0B";
   
 const styles = StyleSheet.create({
-container: {
+  container: {
     flex: 1,
     backgroundColor: '#fff',
-},
-venueName: {
+  },
+  venueName: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
     color: Colors.mainFontColor,
-},
-header: {
+  },
+  header: {
     marginBottom: 8,
     marginTop: 16,
     paddingHorizontal: 8,
-},
-headerText: {
+    zIndex: 1,
+  },
+  headerText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-},
-listContainer: {
+  },
+  listContainer: {
     padding: 16,
-},
-card: {
+  },
+  card: {
     backgroundColor: '#fff',
     minHeight: 80,
-    padding: 16,
+    padding: 10,
     marginVertical: 8,
     borderRadius: 8,
     shadowColor: '#000',
@@ -307,52 +293,58 @@ card: {
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-},
-image: {
+  },
+  image: {
     width: 100,
     height: 100,
     borderTopLeftRadius: 8,
     borderBottomLeftRadius: 8,
-},
-details: {
+  },
+  details: {
     flex: 1,
     padding: 8,
-},
-name: {
+  },
+  name: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 4,
-},
-description: {
+    marginBottom: 8,
+  },
+  description: {
     fontSize: 14,
     color: '#666',
     marginBottom: 8,
-},
-price: {
+  },
+  price: {
     fontSize: 16,
-    fontWeight: 'bold',
     color: '#333',
-},
-actionButton: {
+  },
+  actionButton: {
     shadowColor: 'black',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 1.65,
     elevation: 2,
-    backgroundColor: lightgrey,
+    backgroundColor: mainColor,
     width: 150,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 30,
-    marginBottom: 10,
-    marginRight: 20
-},
-actionButtonText: {
-    fontSize: 15,
-    fontWeight: '600'
-},
-actionButtonContainer: {
+    height: 37,
+  },
+  actionButtonText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: '#fff',
+  },
+  actionButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    flexWrap: 'wrap',
+    marginTop: 10,
+    zIndex: 1000,
+    elevation: 10,
+  },
+  actionButtonContainerTop: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     flexWrap: 'wrap',
@@ -363,21 +355,8 @@ actionButtonContainer: {
     elevation: 1,
     paddingVertical: 20,
     borderRadius: 10,
-    backgroundColor: "#F9F9F9"
-    },
-    actionButtonContainerTop: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        flexWrap: 'wrap',
-        shadowColor: 'grey',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.15,
-        shadowRadius: 1,
-        elevation: 1,
-        paddingVertical: 20,
-        borderRadius: 10
-    },
-    menuItem: {
+  },
+  menuItem: {
     shadowColor: 'black',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -389,59 +368,59 @@ actionButtonContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     height: 30
-    },
-    selectedMenu: {
+  },
+  selectedMenu: {
     backgroundColor: mainColor, 
     borderColor: '#4CAF50',
-    },
-    menuText: {
+  },
+  menuText: {
     color: '#000',
-    },
-    selectedMenuText: {
+  },
+  selectedMenuText: {
     color: '#fff',
-    },
-    underlayAction: {
-      justifyContent: 'center',
-      paddingHorizontal: 20,
-      borderRadius: 8,
-      flex: 1,
-      padding: 16,
-      marginVertical: 8,
-    },
-      alignLeft: {
-      alignItems: 'flex-end',
-    },
-      alignRight: {
-      alignItems: 'flex-start',
-    },
-      actionText: {
-      color: '#fff',
-      fontWeight: 'bold',
-      fontSize: 16,
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: '80%',
-        padding: 20,
-        backgroundColor: 'white',
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    modalSubtitle: {
-        fontSize: 14,
-        marginBottom: 20,
-        textAlign: 'center',
-    },
+  },
+  underlayAction: {
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flex: 1,
+    padding: 16,
+    marginVertical: 8,
+  },
+    alignLeft: {
+    alignItems: 'flex-end',
+  },
+  alignRight: {
+    alignItems: 'flex-start',
+  },
+  actionText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
 
 });
   

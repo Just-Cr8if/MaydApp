@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     width: 150,
     alignSelf: 'center',
     height: 40,
-    marginTop: 5
+    marginTop: 10,
   },
   buttonText: {
     fontSize: 15,
