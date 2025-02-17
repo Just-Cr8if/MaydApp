@@ -339,7 +339,8 @@ const CustomizationForm = ({ groups = [], setGroups, maxGroupsLimit = 5, maxOpti
     addButton: {
         fontSize: 15,
         color: mainColor,
-        fontWeight: '600'
+        fontWeight: '600',
+        marginTop: 10,
     },
     removeButtonContainer: {
         flexDirection: 'row',

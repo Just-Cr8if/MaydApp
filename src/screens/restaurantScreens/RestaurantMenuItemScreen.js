@@ -11,6 +11,7 @@ import Button from '../../components/buttons/Button';
 import LargeButton from '../../components/buttons/LargeButton';
 import CustomizationForm from '../../components/helperComponents/CustomizationForm';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const RestaurantMenuItemScreen = ({ route, navigation }) => {
   const { menuItem, venue, categories } = route.params || {};
@@ -249,7 +250,7 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
   
             <Text style={styles.label}>Category</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, {marginBottom: 0}]}
               value={itemType}
               onChangeText={handleCategoryInputChange}
               placeholder="Type or select a category"
@@ -268,7 +269,8 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
               </View>
               )}
   
-            <Text style={styles.label}>Image</Text>
+              <Text style={[styles.label, { marginTop: 20, marginBottom: 0 }]}>Image</Text>
+
             <View style={{ flexDirection: 'row' }}>
               {imageUri && (
                 <Image source={{ uri: imageUri }} style={styles.image} />
@@ -276,7 +278,7 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
               <Button title="Select Image" onPress={pickImage} />
             </View>
   
-            <Text style={[styles.label, { marginTop: 10 }]}>Dietary Options</Text>
+            <Text style={[styles.label, { marginTop: 20 }]}>Dietary Options</Text>
             <View style={styles.checkboxOuterContainer}>
               {Object.keys(dietaryOptions)
                 .reduce((rows, key, index, keys) => {
@@ -293,7 +295,9 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
                             dietaryOptions[key] && styles.checkboxChecked,
                           ]}
                           onPress={() => toggleDietaryOption(key)}
-                        />
+                        >
+                          {dietaryOptions[key] && <Icon name="check" size={18} color="white" />}
+                        </TouchableOpacity>
                         <Text style={styles.checkboxLabel}>{key.replace('_', ' ')}</Text>
                       </View>
                     ))}
@@ -313,9 +317,10 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
                 maxGroupsLimit={5}
               />
             }
-
-  
+          <View style={styles.saveButtonContainer}>
             <Button title="Save" onPress={handleSave} disabled={!isFormValid} />
+          </View>
+
         </KeyboardAwareScrollView>
     </SafeAreaView>
   );
@@ -340,13 +345,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 8,
-    marginBottom: 16,
-    borderRadius: 4,
-  },
   button: {
     backgroundColor: mainColor,
     padding: 12,
@@ -360,8 +358,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
+    fontWeight: '600',
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
@@ -408,7 +406,13 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   checkboxChecked: {
-    backgroundColor: '#007BFF',
+    backgroundColor: "#00a6ff",
+    borderColor: "#00a6ff",
+  },
+  checkmark: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   checkboxLabel: {
     fontSize: 14,
@@ -416,11 +420,13 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: 20
   },
-  dropdownContainer: {
-    paddingHorizontal: 10
-  },
   dropdownItem: {
-    marginBottom: 5
+    marginBottom: 5,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderTopWidth: 0,
+    padding: 10,
+    borderRadius: 5,
   },
   dropdownItemText: {
     fontSize: 15
@@ -431,10 +437,11 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   customizableButtonContainer: {
-    marginVertical: 10
+    marginTop: 15,
+    marginBottom: 20,
   },
-  customizableFormContainer: {
-
+  saveButtonContainer: {
+    marginBottom: 30,
   }
 });
 
