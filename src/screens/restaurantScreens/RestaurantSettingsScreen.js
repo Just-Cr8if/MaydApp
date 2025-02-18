@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
-  View, Text, Button, TextInput, Image, Alert,
-  StyleSheet, ScrollView
+  View, Text, TextInput, Image, Alert,
+  StyleSheet, ScrollView, TouchableOpacity
 } from 'react-native';
 import { useRestaurantAuth } from "../../context/RestaurantContext";
 import SettingsOptionButton from "../../components/buttons/SettingsOptionButton";
 import SettingsModal from "../../components/modals/SettingsModal";
 import { useNavigation } from "@react-navigation/native";
 import { Colors } from "../../styles/Constants";
+import Button from "../../components/buttons/Button";
+import { settingsStyles } from "../../styles/settingsStyles";
+
 
 const RestaurantSettingsScreen = () => {
   const { venue, updateVenueOrderStatus, restaurantLogout, restaurantInfo,
@@ -55,31 +58,90 @@ const RestaurantSettingsScreen = () => {
   // Function to render the form inside the modal
   const renderPrepTimeForm = () => (
     <ScrollView style={styles.formContainer}>
-      <Text style={styles.label}>Estimated Wait Time (minutes):</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="numeric"
-        onChangeText={setEstimatedWaitTime}
-        value={estimatedWaitTime}
+      <Text style={styles.content}>Let your customers know how long it will take for pickup orders to be ready.</Text>
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Estimated Wait Time (minutes):</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          onChangeText={setEstimatedWaitTime}
+          value={estimatedWaitTime}
+          placeholder="Enter estimated wait time..."
+        />
+      </View>
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Additional Wait Time (minutes):</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          onChangeText={setAdditionalWaitTime}
+          value={additionalWaitTime}
+          placeholder="Enter additional wait time..."
+        />
+      </View>
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Pickup Instructions:</Text>
+        <TextInput
+          style={styles.inputLarge}
+          onChangeText={setPickupInstructions}
+          value={pickupInstructions}
+          placeholder="Let the customers know where to pick up..."
+          multiline
+        />
+      </View>
+      <Button 
+        title="Submit" 
+        onPress={handlePrepTimeSubmit}
       />
-      <Text style={styles.label}>Additional Wait Time (minutes):</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="numeric"
-        onChangeText={setAdditionalWaitTime}
-        value={additionalWaitTime}
-      />
-      <Text style={styles.label}>Pickup Instructions:</Text>
-      <TextInput
-        style={styles.inputLarge}
-        onChangeText={setPickupInstructions}
-        value={pickupInstructions}
-        placeholder="Let the customers know where to pick up..."
-        multiline
-      />
-      <Button title="Submit" onPress={handlePrepTimeSubmit} />
+
     </ScrollView>
   );
+
+  const renderResetPasswordForm = () => (
+    <ScrollView style={styles.formContainer} keyboardShouldPersistTaps="handled">
+      <Text style={styles.content}>Reset your password securely here.</Text>
+  
+      {/* Current Password */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Current Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your current password"
+          placeholderTextColor="#999"
+          secureTextEntry
+        />
+      </View>
+  
+      {/* New Password */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>New Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter a new password"
+          placeholderTextColor="#999"
+          secureTextEntry
+        />
+      </View>
+  
+      {/* Confirm New Password */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Confirm New Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm your new password"
+          placeholderTextColor="#999"
+          secureTextEntry
+        />
+      </View>
+  
+      {/* Submit Button */}
+      <Button 
+        title="Submit" 
+        onPress={handlePrepTimeSubmit}
+      />
+    </ScrollView>
+  );
+  
 
   // Function to show modal with dynamic content
   const handleOptionPress = (title, content) => {
@@ -141,12 +203,7 @@ const RestaurantSettingsScreen = () => {
       <SettingsOptionButton
         title="Password Reset"
         imageSource={require("../../images/password-reset-icon.png")}
-        onPress={() =>
-          handleOptionPress(
-            "Password Reset",
-            <Text style={styles.content}>Reset your password securely here.</Text>
-          )
-        }
+        onPress={() => handleOptionPress("Password Reset", renderResetPasswordForm())}
       />
       <SettingsOptionButton
         title="Contact Support"
@@ -180,42 +237,54 @@ const styles = StyleSheet.create({
     },
     title: {
       fontSize: 22,
-      fontWeight: 'bold',
+      fontWeight: '600',
       marginBottom: 16,
       color: Colors.mainFontColor
-    },
-    formContainer: {
-      borderColor: 'blue',
-      borderWidth: 10
     },
     horizontalLine: {
       height: 1,
       backgroundColor: Colors.lightgrey,
       marginVertical: 16,
     },
-    input: {
-      borderWidth: 1,
-      borderColor: '#ccc',
-      padding: 8,
-      marginBottom: 16,
-      borderRadius: 4,
-    },
-    label: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      marginBottom: 5,
-    },
     inputLarge: {
       height: 120,
       borderColor: '#ccc',
       borderWidth: 1,
       borderRadius: 8,
-      marginTop: 10,
       marginBottom: 20,
       paddingHorizontal: 10,
-      fontSize: 18,
-      color: '#000',
+      fontSize: 14,
+      color: '#555',
       textAlignVertical: 'top',
+    },
+    formContainer: {
+      padding: 20,
+      backgroundColor: "#fff",
+      width: "95%",
+    },
+    content: {
+      fontSize: 14,
+      color: "#767676",
+      marginBottom: 20,
+      textAlign: "left",
+    },
+    inputContainer: {
+      marginBottom: 15,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: "bold",
+      color: "#555",
+      marginBottom: 5,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: "#ccc",
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 14,
+      color: "#333",
+      backgroundColor: "#f9f9f9",
     },
   });
 

@@ -135,7 +135,7 @@ const RestaurantMenuScreen = ({ route, navigation }) => {
     },
     label: {
       fontSize: 16,
-      fontWeight: 'bold',
+      fontWeight: '600',
       marginBottom: 5,
     },
     input: {

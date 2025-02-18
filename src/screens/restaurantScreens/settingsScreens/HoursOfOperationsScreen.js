@@ -4,6 +4,8 @@ import { settingsStyles } from '../../../styles/settingsStyles';
 import { useRestaurantAuth } from '../../../context/RestaurantContext';
 import TimePicker from '../../../components/helperComponents/TImePicker';
 import { useNavigation } from '@react-navigation/native';
+import CustomHeader from '../../../components/helperComponents/CustomHeader';
+import Button from '../../../components/buttons/Button';
 
 const HoursOfOperationsScreen = () => {
   const { getScheduleForVenue, venue, assignScheduleToVenue, updateScheduleForVenue } = useRestaurantAuth();
@@ -123,12 +125,17 @@ const HoursOfOperationsScreen = () => {
 
   return (
     <View style={settingsStyles.container}>
-      <ScrollView>
+      <CustomHeader
+      title={"Settings"}
+        onBackPress={() => {
+          nav.goBack();
+        }}
+      />
+      <ScrollView style={settingsStyles.scrollViewPadding}>
         <Text style={settingsStyles.title}>Hours Of Operations</Text>
         <Text style={settingsStyles.subtitle}>
           Make sure your hours of operations are up to date.
         </Text>
-        <View style={settingsStyles.horizontalLine} />
         <TextInput
           style={styles.input}
           placeholder="Enter schedule name"
@@ -182,9 +189,9 @@ const HoursOfOperationsScreen = () => {
           </View>
         ))}
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Submit</Text>
-        </TouchableOpacity>
+      <View style={settingsStyles.submitButtonContainer}>
+        <Button title="Submit" onPress={handleSubmit} />
+      </View>
       </ScrollView>
     </View>
   );
@@ -197,13 +204,14 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 10,
     borderRadius: 5,
+    marginBottom: 25,
   },
   dayContainer: {
     marginBottom: 20,
   },
   dayLabel: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: 10,
   },
   timePickerContainer: {
@@ -212,19 +220,7 @@ const styles = StyleSheet.create({
   },
   toLabel: {
     marginHorizontal: 10,
-    fontSize: 16,
-  },
-  submitButton: {
-    backgroundColor: '#007BFF',
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  submitButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
   },
 });
 

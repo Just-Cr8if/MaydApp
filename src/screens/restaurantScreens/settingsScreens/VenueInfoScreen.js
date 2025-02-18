@@ -4,6 +4,7 @@ import { settingsStyles } from '../../../styles/settingsStyles';
 import { useRestaurantAuth } from "../../../context/RestaurantContext";
 import { useNavigation } from '@react-navigation/native';
 import Button from '../../../components/buttons/Button';
+import CustomHeader from '../../../components/helperComponents/CustomHeader';
 
 const VenueInfoScreen = () => {
   const { venue, updateVenue } = useRestaurantAuth();
@@ -70,12 +71,17 @@ const VenueInfoScreen = () => {
 
   return (
     <View style={settingsStyles.container}>
-      <ScrollView>
+      <CustomHeader
+      title={"Settings"}
+        onBackPress={() => {
+          nav.goBack();
+        }}
+      />
+      <ScrollView style={settingsStyles.scrollViewPadding}>
       <Text style={settingsStyles.title}>Venue Information</Text>
       <Text style={settingsStyles.subtitle}>
         Make sure your address, links and contact information are up to date.
       </Text>
-      <View style={settingsStyles.horizontalLine} />
 
         {/* Venue Name */}
         <View style={settingsStyles.formGroup}>
@@ -177,12 +183,14 @@ const VenueInfoScreen = () => {
         </View>
 
         {/* Submit Button */}
-        <Button
-          title="Submit"
-          onPress={handleSubmit}
-          disabled={!formIsValid}
-          color={formIsValid ? "#007BFF" : "#CCC"}
-        />
+        <View style={settingsStyles.submitButtonContainer}>
+          <Button
+            title="Submit"
+            onPress={handleSubmit}
+            disabled={!formIsValid}
+            color={formIsValid ? "#007BFF" : "#CCC"}
+          />
+        </View>
       </ScrollView>
 
     </View>

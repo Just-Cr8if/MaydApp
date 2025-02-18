@@ -8,6 +8,8 @@ import * as ImagePicker from "expo-image-picker";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from '@react-navigation/native';
 import Button from '../../../components/buttons/Button';
+import CustomHeader from '../../../components/helperComponents/CustomHeader';
+import { settingsStyles } from '../../../styles/settingsStyles';
 
 const AppPhotosScreen = () => {
   const { allTags, createVenuePhotoAndTags, updateVenuePhotoAndTags,
@@ -114,14 +116,19 @@ const AppPhotosScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView>
-      <Text style={styles.title}>App Photos & Tags</Text>
-      <Text style={styles.subtitle}>
+    
+    <View style={settingsStyles.container}>
+      <CustomHeader
+        title={"Settings"}
+        onBackPress={() => {
+          nav.goBack();
+        }}
+      />
+      <ScrollView style={settingsStyles.scrollViewPadding}>
+      <Text style={settingsStyles.title}>App Photos & Tags</Text>
+      <Text style={settingsStyles.subtitle}>
         This determines where & how users will see you in the app.
       </Text>
-      <View style={styles.horizontalLine} />
-
       <Text style={styles.sectionTitle}>Dress Code</Text>
       <View style={styles.pickerContainer}>
         <Picker
@@ -139,13 +146,13 @@ const AppPhotosScreen = () => {
       </View>
       <Text style={styles.selectedText}>Selected: {formData?.dress_code || "Casual"}</Text>
       
-      <View style={styles.horizontalLine} />
+      <View style={settingsStyles.horizontalLine} />
 
       <Text style={styles.sectionTitle}>Upload Your Photos</Text>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between'}}>
         {/* Logo Upload */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Logo</Text>
+          <Text style={settingsStyles.label}>Logo</Text>
           <TouchableOpacity
             style={styles.uploadButton}
             onPress={() => handleImageSelect((uri) => setFormData({ ...formData, logo: uri }), "logo")}
@@ -160,7 +167,7 @@ const AppPhotosScreen = () => {
 
         {/* Cover Picture Upload */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Cover Picture</Text>
+          <Text style={settingsStyles.label}>Cover Picture</Text>
           <TouchableOpacity
             style={styles.uploadButton}
             onPress={() =>
@@ -179,7 +186,7 @@ const AppPhotosScreen = () => {
         </View>
       </View>
 
-      <View style={styles.horizontalLine} />
+      <View style={settingsStyles.horizontalLine} />
 
       {/* Tag Selection */}
       <View>
@@ -216,40 +223,15 @@ const AppPhotosScreen = () => {
             : `Selected ${selectedTags.length}/5 tags.`}
         </Text>
       </View>
-      <Button title="Submit" onPress={handleSubmit} disabled={selectedTags.length > 5} />
+      <View style={settingsStyles.submitButtonContainer}>
+        <Button title="Submit" onPress={handleSubmit} disabled={selectedTags.length > 5} />
+      </View>
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-    paddingHorizontal: 20,
-    paddingTop: 60
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "gray",
-    marginBottom: 16,
-    width: "80%",
-  },
-  horizontalLine: {
-    height: 1,
-    backgroundColor: "#ddd",
-    marginVertical: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: 500,
-    marginBottom: 10
-  },
   sectionTitle: {
     fontSize: 16,
     color: Colors.mainFontColor,
@@ -266,11 +248,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.lighestGrey,
     borderRadius: 10,
-    paddingVertical: 5,
+    paddingVertical: 10,
     paddingHorizontal: 10,
     marginRight: 5,
     marginBottom: 5,
     backgroundColor: Colors.lighestGrey,
+    minWidth: 160,
   },
   activeTagButton: {
     backgroundColor: Colors.primary,
@@ -278,7 +261,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     color: Colors.mainFontColor,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   activeTagText: {
     color: "white",
@@ -306,6 +289,10 @@ const styles = StyleSheet.create({
     width: "100%",
     resizeMode: "cover",
   },
+  submitButtonContainer: {
+    marginBottom: 50,
+    marginTop: 20,
+  }
 });
 
 export default AppPhotosScreen;
