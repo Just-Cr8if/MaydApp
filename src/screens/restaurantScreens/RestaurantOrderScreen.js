@@ -8,15 +8,16 @@ import { useRestaurantAuth } from "../../context/RestaurantContext";
 import SwipeableItem from 'react-native-swipeable-item';
 import RNEventSource from "react-native-event-source";
 import { MOBYLMENU_API_BASE_URL, WEBSOCKET_URL } from "../../config";
-
+import { toTitlecase } from "../../../utils/utilityFunctions";
+import { PageContainer, PageBody } from "../../components/helperComponents/PageElements";
 
 const RestaurantOrderScreen = ({ navigation }) => {
     const { venue, restaurantOrders, setRestaurantOrders, updateAsyncStorageOrders,
         updateOrderStatus, restaurantInfo, tableRequests, setTableRequests, patchTableRequest
      } = useRestaurantAuth();
     const [orderType, setOrderType] = useState('All');
-    const [selectedOrderId, setSelectedOrderId] = useState(null); // Track selected order
-    const [kitchenView, setKitchenView] = useState(false); // Track Kitchen View toggle
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+    const [kitchenView, setKitchenView] = useState(false);
     const { width } = Dimensions.get('window');
     const isLargeScreen = width >= 768;
     const [isDeclineModalVisible, setDeclineModalVisible] = useState(false);
@@ -308,8 +309,8 @@ const RestaurantOrderScreen = ({ navigation }) => {
                 key={item.id}
                 item={item}
                 overSwipe={20}
-                snapPointsLeft={isSwipeRestrictedToClose ? [100] : [100]} // Left swipe for "close" when accepted
-                snapPointsRight={!isSwipeRestrictedToClose ? [100] : []} // Disable right swipe for "accepted"
+                snapPointsLeft={isSwipeRestrictedToClose ? [100] : [100]}
+                snapPointsRight={!isSwipeRestrictedToClose ? [100] : []}
                 renderUnderlayLeft={
                     isSwipeRestrictedToClose
                         ? () => <LeftCloseUnderlay onPress={() => handleClose(item.id)} />
@@ -329,7 +330,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
                 >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text style={[styles.customerName, { marginRight:10 }]}>{transformOrderType(item)}</Text>
-                        <Text style={styles.customerName}>{item.customer_name}</Text>
+                        <Text style={styles.customerName}>{toTitlecase(item.customer_name)}</Text>
                     </View>
                     <Text style={styles.submittedTime}>
                         Order Placed:{' '}
@@ -417,8 +418,8 @@ const RestaurantOrderScreen = ({ navigation }) => {
     };
            
     return (
-        <View style={styles.container}>
-            <SafeAreaView>
+        <PageContainer>
+            <PageBody>
             <Modal
                 visible={isDeclineModalVisible}
                 transparent={true}
@@ -445,7 +446,16 @@ const RestaurantOrderScreen = ({ navigation }) => {
                     </View>
                 </View>
             </Modal>
-                <Text style={styles.venueName}>Manage Orders</Text>
+                <TouchableOpacity
+                    style={styles.plusSignAndTextContainer}
+                    onPress={() => navigation.navigate('RestaurantManageTableOrder')}    
+                >
+                    <Image
+                        source={{ uri: "https://mobyl-menu-bucket.s3.amazonaws.com/MM-Images/plus.png" }}
+                        style={{ width: 15, height: 15, marginRight: 5 }}
+                    />
+                    <Text style={styles.venueName}>Add Order</Text>
+                </TouchableOpacity>
                 <View style={styles.orderHeaderContainer}>
                     <TouchableOpacity
                         style={styles.orderHeaderButton}
@@ -513,37 +523,27 @@ const RestaurantOrderScreen = ({ navigation }) => {
                     />
                 )}
 
-            </SafeAreaView>
-        </View>
+            </PageBody>
+        </PageContainer>
     );
 };
 
 export default RestaurantOrderScreen;
 
 const mainColor = "#00A6FF"
-const mainColorO = "rgba(0, 166, 255, 0.5)";
-const mint = "#3EB489";
 const green = "#32B53D";
-const orange = "orange";
 const red = "#FF0B0B";
-const darkColor = "#202124";
-const charcoal = "#36454F";
-const lightgrey = "#E5E4E2";
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
 
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    plusSignAndTextContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingTop: 75,
-        backgroundColor: 'white'
+        padding: 10
     },
     venueName: {
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: '700',
         alignSelf: 'flex-start',
     },
     orderHeaderContainer: {

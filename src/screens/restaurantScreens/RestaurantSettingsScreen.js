@@ -9,7 +9,7 @@ import SettingsModal from "../../components/modals/SettingsModal";
 import { useNavigation } from "@react-navigation/native";
 import { Colors } from "../../styles/Constants";
 import Button from "../../components/buttons/Button";
-import { settingsStyles } from "../../styles/settingsStyles";
+import { PageContainer, PageBody } from '../../components/helperComponents/PageElements';
 
 
 const RestaurantSettingsScreen = () => {
@@ -151,7 +151,8 @@ const RestaurantSettingsScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <PageContainer>
+      <PageBody>
       <SettingsModal 
         isModalVisible={isModalVisible}
         setIsModalVisible={setIsModalVisible}
@@ -224,7 +225,8 @@ const RestaurantSettingsScreen = () => {
           )
         }
       />
-    </View>
+      </PageBody>
+    </PageContainer>
   );
 };
 

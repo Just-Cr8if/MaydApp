@@ -3,15 +3,15 @@ import { View, SafeAreaView, Text, TextInput, FlatList,
   StyleSheet, Image, TouchableOpacity, Dimensions, ScrollView, 
   Pressable} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import DismissKeyboardView from '../../components/helperComponents/DissmissKeyboardView';
 import { useRestaurantAuth } from '../../context/RestaurantContext';
 import CustomHeader from '../../components/helperComponents/CustomHeader';
 import { useNavigation } from '@react-navigation/native';
 import Button from '../../components/buttons/Button';
-import LargeButton from '../../components/buttons/LargeButton';
 import CustomizationForm from '../../components/helperComponents/CustomizationForm';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { PageContainer, PageBody } from "../../components/helperComponents/PageElements";
+import { Colors } from '../../styles/Constants';
 
 const RestaurantMenuItemScreen = ({ route, navigation }) => {
   const { menuItem, venue, categories } = route.params || {};
@@ -206,23 +206,20 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <PageContainer>
       {/* Static Header */}
       <CustomHeader
         title={venue?.venue_name}
-        onBackPress={() => {
-          nav.goBack();
-        }}
       />
+      <PageBody>
         <KeyboardAwareScrollView
           style={styles.scrollContainer}
-          contentContainerStyle={styles.contentContainer}
           keyboardShouldPersistTaps="handled"
           enableOnAndroid={true} // Ensures it works on Android
           extraHeight={100} // Adjust this value if needed
         >
           
-            <Text style={[styles.label, { marginTop: 20 }]}>Name</Text>
+            <Text style={[styles.label]}>Name</Text>
             <TextInput
               style={styles.input}
               value={name}
@@ -320,33 +317,21 @@ const RestaurantMenuItemScreen = ({ route, navigation }) => {
           <View style={styles.saveButtonContainer}>
             <Button title="Save" onPress={handleSave} disabled={!isFormValid} />
           </View>
-
         </KeyboardAwareScrollView>
-    </SafeAreaView>
+      </PageBody>
+      </PageContainer>
   );
 }  
 
 const mainColor = "#00A6FF"
-const mainColorO = "rgba(0, 166, 255, 0.5)";
-const mint = "#3EB489";
-const darkColor = "#202124";
-const charcoal = "#36454F";
-const lightgrey = "#E5E4E2";
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
   label: {
     fontSize: 16,
     marginBottom: 8,
   },
   button: {
-    backgroundColor: mainColor,
+    backgroundColor: Colors.primary,
     padding: 12,
     borderRadius: 4,
     alignItems: 'center',
@@ -374,7 +359,7 @@ const styles = StyleSheet.create({
     marginRight: 20
   },
   button: {
-    backgroundColor: mainColor,
+    backgroundColor: Colors.primary,
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',
@@ -417,9 +402,6 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     fontSize: 14,
   },
-  contentContainer: {
-    paddingHorizontal: 20
-  },
   dropdownItem: {
     marginBottom: 5,
     borderWidth: 1,
@@ -432,7 +414,7 @@ const styles = StyleSheet.create({
     fontSize: 15
   },
   customizableButton: {
-    color: mainColor,
+    color: Colors.primary,
     fontSize: 15,
     fontWeight: '600'
   },

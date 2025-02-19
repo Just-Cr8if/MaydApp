@@ -536,7 +536,6 @@ const deleteMenuItem = async (menuItemId) => {
   
   const patchTableRequest = async (venueId, tableRequestId, fulfilled) => {
 
-    console.log(venueId, tableRequestId, fulfilled);
     try {
       const response = await axios.patch(
         `${MOBYLMENU_API_BASE_URL}/table_requests/${venueId}/`,

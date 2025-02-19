@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import Button from '../../../components/buttons/Button';
 import CustomHeader from '../../../components/helperComponents/CustomHeader';
 import { settingsStyles } from '../../../styles/settingsStyles';
+import { PageContainer, PageBody } from '../../../components/helperComponents/PageElements';
 
 const AppPhotosScreen = () => {
   const { allTags, createVenuePhotoAndTags, updateVenuePhotoAndTags,
@@ -117,14 +118,15 @@ const AppPhotosScreen = () => {
 
   return (
     
-    <View style={settingsStyles.container}>
+    <PageContainer>
       <CustomHeader
         title={"Settings"}
         onBackPress={() => {
           nav.goBack();
         }}
       />
-      <ScrollView style={settingsStyles.scrollViewPadding}>
+      <PageBody>
+      <ScrollView>
       <Text style={settingsStyles.title}>App Photos & Tags</Text>
       <Text style={settingsStyles.subtitle}>
         This determines where & how users will see you in the app.
@@ -227,7 +229,8 @@ const AppPhotosScreen = () => {
         <Button title="Submit" onPress={handleSubmit} disabled={selectedTags.length > 5} />
       </View>
       </ScrollView>
-    </View>
+      </PageBody>
+    </PageContainer>
   );
 };
 

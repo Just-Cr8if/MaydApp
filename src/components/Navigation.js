@@ -20,6 +20,7 @@ import RestaurantMenuItemScreen from '../screens/restaurantScreens/RestaurantMen
 import RestaurantMenuScreen from '../screens/restaurantScreens/RestaurantMenuScreen';
 import RestaurantOrderScreen from '../screens/restaurantScreens/RestaurantOrderScreen';
 import RestaurantSettingsScreen from '../screens/restaurantScreens/RestaurantSettingsScreen';
+import RestaurantManageTableOrderScreen from '../screens/restaurantScreens/RestaurantManageTableOrderScreen';
 
 import AppPhotosScreen from '../screens/restaurantScreens/settingsScreens/AppPhotosScreen';
 import ContactSupportScreen from '../screens/restaurantScreens/settingsScreens/ContactSupportScreen';
@@ -101,6 +102,23 @@ const RestaurantHomeStackNavigator = () => {
   );
 };
 
+const RestaurantOrderStackNavigator = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="RestaurantOrders"
+        component={RestaurantOrderScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="RestaurantManageTableOrder"
+        component={RestaurantManageTableOrderScreen}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const RestaurantSettingsStackNavigator = () => {
   return (
       <Stack.Navigator initialRouteName="RestaurantSettings">
@@ -146,7 +164,7 @@ const RestaurantTabNavigator = () => {
 
       <Tab.Screen
         name="Orders"
-        component={RestaurantOrderScreen}
+        component={RestaurantOrderStackNavigator}
         options={{
           headerShown: false,
           tabBarLabel: 'Orders',

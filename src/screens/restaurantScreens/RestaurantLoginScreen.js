@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRestaurantAuth } from "../../context/RestaurantContext";
 import LottieLoadingAnimation from '../../components/animations/LottieLoadingAnimation';
 import LargeButton from "../../components/buttons/LargeButton";
+import { PageContainer, PageBody } from "../../components/helperComponents/PageElements";
 
 
 const RestaurantLoginScreen = ({navigation}) => {
@@ -32,7 +33,7 @@ const RestaurantLoginScreen = ({navigation}) => {
     }, [errorMessage]);
 
     const renderLoginForm = () => (
-        <Animated.View style={styles.wrapper}>
+        <Animated.View>
           <Text style={styles.pageHeader}>Sign In</Text>
           <View style={{ width: '100%'}}>
             <View style={{ height: 40 }}>
@@ -96,17 +97,18 @@ const RestaurantLoginScreen = ({navigation}) => {
       );
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar style="auto" backgroundColor={"white"} foregroundColor={"black"} />
+        <PageContainer>
+          <StatusBar style="auto" backgroundColor={"white"} foregroundColor={"black"} />
+          <PageBody>
             <LottieLoadingAnimation visible={restaurantIsLoggingIn} position={'flex-start'} customTop={25}/>
             <Image style={styles.mobylMenuLogo} source={require('../../images/mobylmenu-app.png')} />
             {renderLoginForm()}
-        </SafeAreaView>
+          </PageBody>
+        </PageContainer>
     )
 }
 
 export default RestaurantLoginScreen;
-
 
 const mainColor = "#00A6FF"
 const mainColorO = "rgba(0, 166, 255, 0.5)";
@@ -140,9 +142,6 @@ const styles = StyleSheet.create({
         marginBottom: 50,
         fontSize: 30,
         fontWeight: 'bold',
-    },
-    wrapper: {
-        width: screenWidth * .9
     },
     input: {
         marginBottom: 20,

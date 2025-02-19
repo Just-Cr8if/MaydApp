@@ -3,19 +3,22 @@ import { View, Text } from 'react-native';
 import { settingsStyles } from '../../../styles/settingsStyles';
 import CustomHeader from '../../../components/helperComponents/CustomHeader';
 import { useNavigation } from '@react-navigation/native';
+import { PageContainer, PageBody } from '../../../components/helperComponents/PageElements';
 
 const SubscriptionScreen = () => {
   const nav = useNavigation();
   return (
-    <View style={settingsStyles.container}>
+    <PageContainer>
       <CustomHeader
         title={"Settings"}
         onBackPress={() => {
           nav.goBack();
         }}
       />
-      <Text>SubscriptionScreen</Text>
-    </View>
+      <PageBody>
+        <Text>SubscriptionScreen</Text>
+      </PageBody>
+    </PageContainer>
   );
 };
 

@@ -12,6 +12,8 @@ import Button from "../../components/buttons/Button";
 import { Colors, Layout } from '../../styles/Constants';
 import RNPickerSelect from "react-native-picker-select";
 import CustomDropdown from "../../components/helperComponents/CustomDropdown";
+import { toTitlecase } from "../../../utils/utilityFunctions";
+import { PageContainer, PageBody } from "../../components/helperComponents/PageElements";
 
 
 const RestaurantHomeScreen = ({ navigation }) => {
@@ -151,9 +153,10 @@ const RestaurantHomeScreen = ({ navigation }) => {
         >
           <Pressable
             style={[styles.card]}
-            onPress={() => nav.navigate('RestaurantMenuItem', { menuItem: item, venue: venue, categories: categories })}>
+            onPress={() => nav.navigate('RestaurantMenuItem', { menuItem: item, venue: venue, categories: categories })}
+          >
             <View style={styles.details}>
-              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.name}>{toTitlecase(item.name)}</Text>
               <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
               <Text style={styles.price}>${item.price}</Text>
             </View>
@@ -179,7 +182,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
       if (item.type === 'header') {
         return (
           <View style={styles.header}>
-            <Text style={styles.headerText}>{item.category}</Text>
+            <Text style={styles.headerText}>{toTitlecase(item.category)}</Text>
           </View>
         );
       }
@@ -193,8 +196,8 @@ const RestaurantHomeScreen = ({ navigation }) => {
     
   
     return (
-      <View style={styles.container}>
-        <SafeAreaView>
+      <PageContainer>
+        <PageBody>
         <Modal
           visible={isDeleteModalVisible}
           transparent={true}
@@ -217,7 +220,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
             data={groupedData}
             ListHeaderComponent={
                 <View>
-                  <Text style={styles.venueName}>{venue?.venue_name}</Text>
+                  <Text style={styles.venueName}>{toTitlecase(venue?.venue_name)}</Text>
                   <Text style={styles.headerText}>Menus</Text>
                     <View style={styles.actionButtonContainer}>
                     <CustomDropdown 
@@ -227,18 +230,18 @@ const RestaurantHomeScreen = ({ navigation }) => {
                     />
                     </View>
                     <View style={styles.actionButtonContainerTop}>
-                        <TouchableOpacity
-                            onPress={() => nav.navigate('RestaurantMenuItem', { venue: venue, categories: categories })}
-                            style={styles.actionButton}
-                        >
-                          <Text style={styles.actionButtonText}>Add Menu Item</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => nav.navigate('RestaurantMenu', { venue: venue })}
-                        >
-                            <Text style={styles.actionButtonText}>Create Menu</Text>
-                        </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => nav.navigate('RestaurantMenuItem', { venue: venue, categories: categories })}
+                        style={styles.actionButton}
+                      >
+                        <Text style={styles.actionButtonText}>Add Menu Item</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => nav.navigate('RestaurantMenu', { venue: venue })}
+                      >
+                          <Text style={styles.actionButtonText}>Create Menu</Text>
+                      </TouchableOpacity>
                     </View>      
                 </View>
               }
@@ -246,10 +249,10 @@ const RestaurantHomeScreen = ({ navigation }) => {
               item.type === 'header' ? `header-${item.category}` : `item-${item.data.id}`
             }
             renderItem={renderItem}
-            contentContainerStyle={[styles.listContainer, { overflow: 'visible' }]}
+            contentContainerStyle={[{ overflow: 'visible' }]}
           />
-        </SafeAreaView>
-      </View>
+        </PageBody>
+      </PageContainer>
     );
   };  
 
@@ -258,10 +261,6 @@ const lightgrey = "#E5E4E2";
 const red = "#FF0B0B";
   
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
   venueName: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -278,9 +277,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-  },
-  listContainer: {
-    padding: 16,
   },
   card: {
     backgroundColor: '#fff',

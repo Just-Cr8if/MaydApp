@@ -5,6 +5,7 @@ import { useRestaurantAuth } from "../../../context/RestaurantContext";
 import { useNavigation } from '@react-navigation/native';
 import Button from '../../../components/buttons/Button';
 import CustomHeader from '../../../components/helperComponents/CustomHeader';
+import { PageBody, PageContainer } from '../../../components/helperComponents/PageElements';
 
 const VenueInfoScreen = () => {
   const { venue, updateVenue } = useRestaurantAuth();
@@ -70,14 +71,15 @@ const VenueInfoScreen = () => {
   };
 
   return (
-    <View style={settingsStyles.container}>
+    <PageContainer>
       <CustomHeader
       title={"Settings"}
         onBackPress={() => {
           nav.goBack();
         }}
       />
-      <ScrollView style={settingsStyles.scrollViewPadding}>
+      <PageBody>
+      <ScrollView>
       <Text style={settingsStyles.title}>Venue Information</Text>
       <Text style={settingsStyles.subtitle}>
         Make sure your address, links and contact information are up to date.
@@ -192,8 +194,9 @@ const VenueInfoScreen = () => {
           />
         </View>
       </ScrollView>
+      </PageBody>
 
-    </View>
+    </PageContainer>
   );
 };
 

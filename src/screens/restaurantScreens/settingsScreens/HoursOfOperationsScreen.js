@@ -6,6 +6,7 @@ import TimePicker from '../../../components/helperComponents/TImePicker';
 import { useNavigation } from '@react-navigation/native';
 import CustomHeader from '../../../components/helperComponents/CustomHeader';
 import Button from '../../../components/buttons/Button';
+import { PageContainer, PageBody } from '../../../components/helperComponents/PageElements';
 
 const HoursOfOperationsScreen = () => {
   const { getScheduleForVenue, venue, assignScheduleToVenue, updateScheduleForVenue } = useRestaurantAuth();
@@ -124,76 +125,78 @@ const HoursOfOperationsScreen = () => {
   };
 
   return (
-    <View style={settingsStyles.container}>
+    <PageContainer>
       <CustomHeader
       title={"Settings"}
         onBackPress={() => {
           nav.goBack();
         }}
       />
-      <ScrollView style={settingsStyles.scrollViewPadding}>
-        <Text style={settingsStyles.title}>Hours Of Operations</Text>
-        <Text style={settingsStyles.subtitle}>
-          Make sure your hours of operations are up to date.
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter schedule name"
-          value={name}
-          onChangeText={setName}
-        />
+      <PageBody>
+        <ScrollView>
+          <Text style={settingsStyles.title}>Hours Of Operations</Text>
+          <Text style={settingsStyles.subtitle}>
+            Make sure your hours of operations are up to date.
+          </Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter schedule name"
+            value={name}
+            onChangeText={setName}
+          />
 
-        {Object.keys(schedule).map((day) => (
-          <View key={day} style={styles.dayContainer}>
-            <Text style={styles.dayLabel}>{day}</Text>
+          {Object.keys(schedule).map((day) => (
+            <View key={day} style={styles.dayContainer}>
+              <Text style={styles.dayLabel}>{day}</Text>
 
-            <View style={styles.timePickerContainer}>
-              <TimePicker
-                selectedValue={schedule[day].open.hour}
-                onValueChange={(value) => handleChange(day, 'open', 'hour', value)}
-                options={hours}
-                label="Hour"
-              />
-              <TimePicker
-                selectedValue={schedule[day].open.minute}
-                onValueChange={(value) => handleChange(day, 'open', 'minute', value)}
-                options={minutes}
-                label="Min"
-              />
-              <TimePicker
-                selectedValue={schedule[day].open.period}
-                onValueChange={(value) => handleChange(day, 'open', 'period', value)}
-                options={periods}
-                label="AM/PM"
-              />
-              <Text style={styles.toLabel}>to</Text>
-              <TimePicker
-                selectedValue={schedule[day].close.hour}
-                onValueChange={(value) => handleChange(day, 'close', 'hour', value)}
-                options={hours}
-                label="Hour"
-              />
-              <TimePicker
-                selectedValue={schedule[day].close.minute}
-                onValueChange={(value) => handleChange(day, 'close', 'minute', value)}
-                options={minutes}
-                label="Min"
-              />
-              <TimePicker
-                selectedValue={schedule[day].close.period}
-                onValueChange={(value) => handleChange(day, 'close', 'period', value)}
-                options={periods}
-                label="AM/PM"
-              />
+              <View style={styles.timePickerContainer}>
+                <TimePicker
+                  selectedValue={schedule[day].open.hour}
+                  onValueChange={(value) => handleChange(day, 'open', 'hour', value)}
+                  options={hours}
+                  label="Hour"
+                />
+                <TimePicker
+                  selectedValue={schedule[day].open.minute}
+                  onValueChange={(value) => handleChange(day, 'open', 'minute', value)}
+                  options={minutes}
+                  label="Min"
+                />
+                <TimePicker
+                  selectedValue={schedule[day].open.period}
+                  onValueChange={(value) => handleChange(day, 'open', 'period', value)}
+                  options={periods}
+                  label="AM/PM"
+                />
+                <Text style={styles.toLabel}>to</Text>
+                <TimePicker
+                  selectedValue={schedule[day].close.hour}
+                  onValueChange={(value) => handleChange(day, 'close', 'hour', value)}
+                  options={hours}
+                  label="Hour"
+                />
+                <TimePicker
+                  selectedValue={schedule[day].close.minute}
+                  onValueChange={(value) => handleChange(day, 'close', 'minute', value)}
+                  options={minutes}
+                  label="Min"
+                />
+                <TimePicker
+                  selectedValue={schedule[day].close.period}
+                  onValueChange={(value) => handleChange(day, 'close', 'period', value)}
+                  options={periods}
+                  label="AM/PM"
+                />
+              </View>
             </View>
-          </View>
-        ))}
+          ))}
 
-      <View style={settingsStyles.submitButtonContainer}>
-        <Button title="Submit" onPress={handleSubmit} />
-      </View>
-      </ScrollView>
-    </View>
+        <View style={settingsStyles.submitButtonContainer}>
+          <Button title="Submit" onPress={handleSubmit} />
+        </View>
+        </ScrollView>
+      </PageBody>
+    </PageContainer>
   );
 };
 
