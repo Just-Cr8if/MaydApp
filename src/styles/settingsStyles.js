@@ -6,19 +6,19 @@ export const settingsStyles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
-        paddingHorizontal: 20,
-        paddingTop: 60
+        paddingTop: 50
       },
       title: {
         fontSize: 22,
-        fontWeight: "bold",
+        fontWeight: "600",
         marginBottom: 10,
+        marginTop: 20,
       },
       subtitle: {
         fontSize: 14,
         color: "gray",
-        marginBottom: 16,
-        width: "80%",
+        marginBottom: 18,
+        width: "100%",
       },
       horizontalLine: {
         height: 1,
@@ -27,7 +27,7 @@ export const settingsStyles = StyleSheet.create({
       },
       label: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '600',
         marginBottom: 5,
       },
       input: {
@@ -35,6 +35,13 @@ export const settingsStyles = StyleSheet.create({
         borderColor: '#ccc',
         borderRadius: 5,
         padding: 10,
-        marginBottom: 10,
+        marginBottom: 15,
       },
+      submitButtonContainer: {
+        marginBottom: 50,
+        marginTop: 20,
+      },
+      scrollViewPadding: {
+        paddingHorizontal: 20,
+      }
 });
