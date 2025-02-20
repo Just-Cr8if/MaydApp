@@ -133,41 +133,45 @@ const RestaurantSettingsStackNavigator = () => {
 };
 
 const RestaurantTabNavigator = () => {
+  const { teamMemberRole } = useRestaurantAuth();
+
   return (
     <Tab.Navigator>
-      <Tab.Screen
-        name="Menus"
-        component={RestaurantHomeStackNavigator}
-        options={{
-          headerShown: false,
-          tabBarLabel: ({ focused }) => (
-            <Text
-              style={{
-                color: focused ? '#00A6FF' : 'black',
-                fontSize: 12,
-              }}
-            >
-              Menus
-            </Text>
-          ),
-          tabBarIcon: ({ focused }) => (
-            <Image 
-              source={focused ? require('../images/menu-tab-icon-blue.png') : require('../images/menu-tab-icon-black.png')}  
-              style={{ 
-                width: 25, 
-                height: 25 
-              }}
-            />
-          ),
-        }}
-      />
+      {!teamMemberRole && (
+        <Tab.Screen
+          name="Menus"
+          component={RestaurantHomeStackNavigator}
+          options={{
+            headerShown: false,
+            tabBarLabel: ({ focused }) => (
+              <Text
+                style={{
+                  color: focused ? '#00A6FF' : 'black',
+                  fontSize: 12,
+                }}
+              >
+                Menus
+              </Text>
+            ),
+            tabBarIcon: ({ focused }) => (
+              <Image 
+                source={
+                  focused 
+                    ? require('../images/menu-tab-icon-blue.png') 
+                    : require('../images/menu-tab-icon-black.png')
+                }  
+                style={{ width: 25, height: 25 }}
+              />
+            ),
+          }}
+        />
+      )}
 
       <Tab.Screen
         name="Orders"
         component={RestaurantOrderStackNavigator}
         options={{
           headerShown: false,
-          tabBarLabel: 'Orders',
           tabBarLabel: ({ focused }) => (
             <Text
               style={{
@@ -180,15 +184,17 @@ const RestaurantTabNavigator = () => {
           ),
           tabBarIcon: ({ focused }) => (
             <Image 
-              source={focused ? require('../images/order-tab-icon-blue.png') : require('../images/order-tab-icon-black.png')}  
-              style={{ 
-                width: 25, 
-                height: 25 
-              }}
+              source={
+                focused 
+                  ? require('../images/order-tab-icon-blue.png') 
+                  : require('../images/order-tab-icon-black.png')
+              }  
+              style={{ width: 25, height: 25 }}
             />
           ),
         }}
       />
+
       <Tab.Screen
         name="Settings"
         component={RestaurantSettingsStackNavigator}
@@ -207,11 +213,12 @@ const RestaurantTabNavigator = () => {
           ),
           tabBarIcon: ({ focused }) => (
             <Image 
-              source={focused ? require('../images/settings-blue.png') : require('../images/settings-black.png')}  
-              style={{ 
-                width: 25, 
-                height: 25 
-              }}
+              source={
+                focused 
+                  ? require('../images/settings-blue.png') 
+                  : require('../images/settings-black.png')
+              }  
+              style={{ width: 25, height: 25 }}
             />
           ),
         }}
@@ -223,13 +230,15 @@ const RestaurantTabNavigator = () => {
 // Main Navigation Component
 const Navigation = () => {
   const { isLoggedIn, selectedRole, setSelectedRole } = useAuth();
-  const { restaurantIsLoggedIn, restaurantIsLoggingIn } = useRestaurantAuth();
+  const { restaurantIsLoggedIn, restaurantIsLoggingIn, teamMemberRole } = useRestaurantAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSelectRole = async role => {
     await AsyncStorage.setItem('selectedRole', role);
     setSelectedRole(role);
   };
+
+  console.log('teamMemberRole', teamMemberRole)
 
   return (
     <NavigationContainer>

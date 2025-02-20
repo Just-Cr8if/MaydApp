@@ -8,7 +8,6 @@ const CustomDropdown = ({ menus, selectedMenu, handleMenuSelect }) => {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    console.log("Updating dropdown items:", menus);
     if (menus.length > 0) {
       setItems(menus.map((item) => ({ label: item.name, value: item.id })));
     }

@@ -17,30 +17,15 @@ import { PageContainer, PageBody } from "../../components/helperComponents/PageE
 
 
 const RestaurantHomeScreen = ({ navigation }) => {
-    const { venue, restaurantOrders, setRestaurantOrders, updateAsyncStorageOrders,
-      getRecentOrders, getMenuItems, displayedMenuItems,
-      getOtherMenus, getOtherMenuItems, setDisplayedMenuItems,
-      menus, setMenus, deleteMenuItem, getTableRequests
+    const { venue, getRecentOrders, getMenuItems, displayedMenuItems,
+      getOtherMenus, getOtherMenuItems, menus, setMenus, deleteMenuItem, 
+      getTableRequests
     } = useRestaurantAuth();
   
-    const { width } = Dimensions.get('window');
-    const isLargeScreen = width >= 768;
     const nav = useNavigation();
     const [selectedMenu, setSelectedMenu] = useState(venue?.menu);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const [itemIdToDelete, setItemIdToDelete] = useState(null);
-
-    useEffect(() => {
-      const fetchOrderData = async () => {
-        try {
-          await getRecentOrders(venue?.id);
-          await getTableRequests(venue?.id);
-        } catch (error) {
-          console.error('Error fetching orders:', error);
-        }
-      };
-      fetchOrderData();
-    }, [venue]);
+    const [itemIdToDelete, setItemIdToDelete] = useState(null);    
 
     // Populate menus with the venue's menu and fetched other menus
     useEffect(() => {
@@ -189,11 +174,6 @@ const RestaurantHomeScreen = ({ navigation }) => {
   
       return <MenuItemCard item={item.data} />;
     };
-
-    useEffect(() => {
-      console.log("Menus Data:", menus);
-    }, [menus]);
-    
   
     return (
       <PageContainer>
@@ -218,6 +198,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
         </Modal>
           <FlatList
             data={groupedData}
+            showsVerticalScrollIndicator={false}
             ListHeaderComponent={
                 <View>
                   <Text style={styles.venueName}>{toTitlecase(venue?.venue_name)}</Text>

@@ -30,8 +30,7 @@ const RestaurantSettingsScreen = () => {
   // Ensure venueOrderStatus exists before setting initial values
   useEffect(() => {
     if (venue?.venue_order_status) {
-      console.log("Venue Order Status:", venue.venue_order_status);
-      
+            
       setEstimatedWaitTime(venue.venue_order_status.estimated_wait_time?.toString() || "");
       setAdditionalWaitTime(venue.venue_order_status.additional_wait_time?.toString() || "");
       setPickupInstructions(venue.venue_order_status.pickup_instructions || "");

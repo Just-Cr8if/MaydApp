@@ -6,14 +6,14 @@ import { View, Text, Button, Pressable, TouchableOpacity, Animated,
  import useWebSocket, { ReadyState } from 'react-native-use-websocket';
 import { useRestaurantAuth } from "../../context/RestaurantContext";
 import SwipeableItem from 'react-native-swipeable-item';
-import RNEventSource from "react-native-event-source";
 import { MOBYLMENU_API_BASE_URL, WEBSOCKET_URL } from "../../config";
 import { toTitlecase } from "../../../utils/utilityFunctions";
 import { PageContainer, PageBody } from "../../components/helperComponents/PageElements";
 
 const RestaurantOrderScreen = ({ navigation }) => {
     const { venue, restaurantOrders, setRestaurantOrders, updateAsyncStorageOrders,
-        updateOrderStatus, restaurantInfo, tableRequests, setTableRequests, patchTableRequest
+        updateOrderStatus, restaurantInfo, tableRequests, setTableRequests, patchTableRequest,
+        getTableRequests, getRecentOrders
      } = useRestaurantAuth();
     const [orderType, setOrderType] = useState('All');
     const [selectedOrderId, setSelectedOrderId] = useState(null);
@@ -24,6 +24,18 @@ const RestaurantOrderScreen = ({ navigation }) => {
     const [declineReason, setDeclineReason] = useState('');
     const [declineOrderId, setDeclineOrderId] = useState(null);
     const [showTableRequests, setShowTableRequests] = useState(false);
+
+    useEffect(() => {
+          const fetchOrderData = async () => {
+            try {
+              await getRecentOrders(venue?.id);
+              await getTableRequests(venue?.id);
+            } catch (error) {
+              console.error('Error fetching orders:', error);
+            }
+          };
+          fetchOrderData();
+        }, [venue]);
     
     // Ensure token and venue are available.
     const token = restaurantInfo?.token;
