@@ -25,6 +25,7 @@ export const RestaurantProvider = ({ children }) => {
   const [allTags, setAllTags] = useState([]);
   const [teamMemberRole, setTeamMemberRole] = useState(null);
   const [lastSelectedTableId, setLastSelectedTableId] = useState(null);
+  const [tables, setTables] = useState([]);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -43,9 +44,10 @@ export const RestaurantProvider = ({ children }) => {
             }
             setRestaurantIsLoggedIn(true);
           }
-          if (savedVenue) {
+          if (savedVenue && parsedRestaurantInfo.token) {
             const parsedSavedVenue = JSON.parse(savedVenue);
             setVenue(parsedSavedVenue);
+            await getTables(parsedSavedVenue.id, parsedRestaurantInfo.token);
           }
         }
       } catch (error) {
@@ -717,19 +719,21 @@ const getTableOrders = async (tableId) => {
   }
 };
 
-const getTables = async (venueId) => {
+const getTables = async (venueId, token) => {
 
   try {
     const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/venues/${venueId}/tables/`, {
       headers: {
-        Authorization: `Token ${restaurantInfo?.token}`,
+        Authorization: `Token ${token}`,
       },
     });
+
+    setTables(response.data);
 
     return response.data;
 
   } catch (error) {
-    console.error("Error fetching table's orders:", error.response?.data || error.message);
+    console.error("Error fetching table's:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -784,6 +788,7 @@ const getTables = async (venueId) => {
       teamMemberRole,
       getTableOrders,
       getTables,
+      tables,
       lastSelectedTableId,
       setLastSelectedTableId
        }}>

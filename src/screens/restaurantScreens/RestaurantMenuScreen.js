@@ -49,9 +49,6 @@ const RestaurantMenuScreen = ({ route, navigation }) => {
       <SafeAreaView style={styles.container}>
         <CustomHeader
             title={venue?.venue_name}
-            onBackPress={() => {
-            nav.goBack();
-            }}
         />
         <ScrollView contentContainerStyle={styles.contentContainer}>
           <Text style={styles.label}>Menu Name</Text>

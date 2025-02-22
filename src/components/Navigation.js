@@ -238,8 +238,6 @@ const Navigation = () => {
     setSelectedRole(role);
   };
 
-  console.log('teamMemberRole', teamMemberRole)
-
   return (
     <NavigationContainer>
       <Stack.Navigator>

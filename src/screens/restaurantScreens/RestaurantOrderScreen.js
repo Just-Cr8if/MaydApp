@@ -156,27 +156,32 @@ const RestaurantOrderScreen = ({ navigation }) => {
         }
     }, [tableRequestsLastMessage, setTableRequests]);
 
-    // Memoized counts for each order type
-    const orderCounts = useMemo(() => {
-        const counts = {
-            New: restaurantOrders.filter((order) => order.status === 'submitted').length,
-            Open: restaurantOrders.filter((order) => order.status === 'accepted').length,
-            Closed: restaurantOrders.filter((order) => ['closed', 'declined'].includes(order.status)).length,
-        };
-        return counts;
-    }, [restaurantOrders]);
+    const orders = restaurantOrders || [];
 
-    // Filter orders based on orderType
+    const orderCounts = useMemo(() => {
+    const counts = {
+        New: orders.filter(order => order.status === 'submitted').length,
+        Open: orders.filter(order => order.status === 'accepted').length,
+        Closed: orders.filter(order =>
+        ['closed', 'declined'].includes(order.status)
+        ).length,
+    };
+    return counts;
+    }, [orders]);
+
     const filteredOrders = useMemo(() => {
-        if (orderType === 'New') {
-            return restaurantOrders.filter((order) => order.status === 'submitted');
-        } else if (orderType === 'Open') {
-            return restaurantOrders.filter((order) => order.status === 'accepted');
-        } else if (orderType === 'Closed') {
-            return restaurantOrders.filter((order) => ['closed', 'declined'].includes(order.status));
-        }
-        return restaurantOrders.filter((order) => order.status === 'submitted');
-    }, [orderType, restaurantOrders]);
+    if (orderType === 'New') {
+        return orders.filter(order => order.status === 'submitted');
+    } else if (orderType === 'Open') {
+        return orders.filter(order => order.status === 'accepted');
+    } else if (orderType === 'Closed') {
+        return orders.filter(order =>
+        ['closed', 'declined'].includes(order.status)
+        );
+    }
+    return orders.filter(order => order.status === 'submitted');
+    }, [orderType, orders]);
+
 
     const transformOrderType = (item) => {
         if (item.order_type === 'pick_up') {

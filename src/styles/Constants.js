@@ -20,6 +20,7 @@ export const Colors = {
 
   mintColor: "#3EB489",
   red: "#C1251F",
+  green: "#32B53D"
 };
 
 export const Sizing = {
