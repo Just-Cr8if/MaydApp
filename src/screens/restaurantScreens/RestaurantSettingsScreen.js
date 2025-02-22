@@ -25,8 +25,6 @@ const RestaurantSettingsScreen = () => {
   const venueOrderStatus = venue?.venue_order_status;
   const nav = useNavigation();
 
-  console.log('teamMemberRole', teamMemberRole);
-
   // Ensure venueOrderStatus exists before setting initial values
   useEffect(() => {
     if (venue?.venue_order_status) {
