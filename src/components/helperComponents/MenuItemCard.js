@@ -4,15 +4,26 @@ import SwipeableItem from 'react-native-swipeable-item';
 import { Colors } from '../../styles/Constants';
 import { toTitlecase } from '../../../utils/utilityFunctions';
 
-const RightUnderlay = ({ onPress }) => (
-    <TouchableOpacity onPress={onPress}
-    style={[styles.underlayAction, styles.alignRight, { backgroundColor: Colors.green }]}
-    >
-      <Text style={styles.actionText}>+ Add</Text>
-    </TouchableOpacity>
+const LeftUnderlay = ({ onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={[styles.underlayAction, styles.alignLeft, { backgroundColor: Colors.green }]}
+  >
+    <Text style={styles.actionText}>+ Add</Text>
+  </TouchableOpacity>
 );
 
-const MenuItemCard = ({ item, handleAddToOrder }) => {
+const RightUnderlay = ({ onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={[styles.underlayAction, styles.alignRight, { backgroundColor: Colors.red }]}
+  >
+    <Text style={styles.actionText}>- Remove</Text>
+  </TouchableOpacity>
+);
+
+
+const MenuItemCard = ({ item, handleAddToOrder, handleRemoveFromOrder, isSelected }) => {
     const [quantity, setQuantity] = useState(1);
     const [selectedCustomizations, setSelectedCustomizations] = useState({});
     const [showCustomizations, setShowCustomizations] = useState(false); // Toggle state
@@ -54,6 +65,15 @@ const MenuItemCard = ({ item, handleAddToOrder }) => {
         swipeableRef.current.close();
       }
     };
+
+    const handleRemoveOrderAndClose = () => {
+      handleRemoveFromOrder(item.id);
+  
+      // 🔹 Close the swipe action after removing the item
+      if (swipeableRef.current) {
+        swipeableRef.current.close();
+      }
+    };
   
     return (
       <SwipeableItem
@@ -61,12 +81,18 @@ const MenuItemCard = ({ item, handleAddToOrder }) => {
         ref={swipeableRef}
         item={item}
         overSwipe={20}
-        snapPointsRight={[100]}
-        renderUnderlayRight={() => (
-          <RightUnderlay onPress={handleOrderAndClose} />
+        snapPointsLeft={[100]}
+        snapPointsRight={isSelected ? [100] : []}
+        renderUnderlayLeft={() => (
+          <LeftUnderlay onPress={handleOrderAndClose} />
         )}
+        renderUnderlayRight={() =>
+          isSelected ? (
+            <RightUnderlay onPress={handleRemoveOrderAndClose} />
+          ) : null
+        }
       >
-        <View style={[styles.cardContainer]}>
+        <View style={[styles.cardContainer, isSelected && styles.selectedOrder]}>
           <View style={[styles.card]}>
             <View style={styles.details}>
               <Text style={styles.name}>{toTitlecase(item.name)}</Text>
@@ -97,7 +123,6 @@ const MenuItemCard = ({ item, handleAddToOrder }) => {
                   />
                 </TouchableOpacity>
               )}
-
             </View>
           </View>
   
@@ -149,6 +174,10 @@ const MenuItemCard = ({ item, handleAddToOrder }) => {
       shadowOpacity: 0.2,
       shadowRadius: 4,
       elevation: 3
+    },
+    selectedOrder: {
+      backgroundColor: '#d0f0c0', // Light green background to indicate selection
+      borderColor: '#76c893',
     },
     card: {
       flexDirection: 'row',

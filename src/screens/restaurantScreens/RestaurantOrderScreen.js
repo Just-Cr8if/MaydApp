@@ -6,7 +6,7 @@ import { View, Text, Button, Pressable, TouchableOpacity, Animated,
  import useWebSocket, { ReadyState } from 'react-native-use-websocket';
 import { useRestaurantAuth } from "../../context/RestaurantContext";
 import SwipeableItem from 'react-native-swipeable-item';
-import { MOBYLMENU_API_BASE_URL, WEBSOCKET_URL } from "../../config";
+import { MOBYLMENU_API_BASE_URL, WEBSOCKET_URL, WEBSOCKET_URL_LOCAL } from "../../config";
 import { toTitlecase } from "../../../utils/utilityFunctions";
 import { PageContainer, PageBody } from "../../components/helperComponents/PageElements";
 
@@ -18,12 +18,12 @@ const RestaurantOrderScreen = ({ navigation }) => {
     const [orderType, setOrderType] = useState('All');
     const [selectedOrderId, setSelectedOrderId] = useState(null);
     const [kitchenView, setKitchenView] = useState(false);
-    const { width } = Dimensions.get('window');
-    const isLargeScreen = width >= 768;
     const [isDeclineModalVisible, setDeclineModalVisible] = useState(false);
     const [declineReason, setDeclineReason] = useState('');
     const [declineOrderId, setDeclineOrderId] = useState(null);
     const [showTableRequests, setShowTableRequests] = useState(false);
+
+    console.log('ORDERS', restaurantOrders);
 
     useEffect(() => {
           const fetchOrderData = async () => {
@@ -70,10 +70,10 @@ const RestaurantOrderScreen = ({ navigation }) => {
         if (ordersLastMessage !== null) {
         try {
             const orderData = JSON.parse(ordersLastMessage.data);
+
             // Only process certain statuses.
             if (
-            orderData.status !== "submitted" &&
-            orderData.status !== "canceled"
+            (orderData.status === "canceled")
             ) {
             console.log("Ignoring order update with status:", orderData.status);
             return;
@@ -171,7 +171,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
 
     const filteredOrders = useMemo(() => {
     if (orderType === 'New') {
-        return orders.filter(order => order.status === 'submitted');
+        return orders.filter(order => order.status === 'submitted' || order.status === 'pending');
     } else if (orderType === 'Open') {
         return orders.filter(order => order.status === 'accepted');
     } else if (orderType === 'Closed') {
@@ -179,7 +179,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
         ['closed', 'declined'].includes(order.status)
         );
     }
-    return orders.filter(order => order.status === 'submitted');
+    return orders.filter(order => order.status === 'submitted' || order.status === 'pending');
     }, [orderType, orders]);
 
 
@@ -191,7 +191,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
         } else if (item.order_type === 'table' && item.table) {
             return `Table #${item.table.table_number}`;
         }
-        return item.order_type; // Fallback in case order_type doesn't match
+        return item.order_type;
     };
     
     const handleAccept = (orderId) => {
@@ -209,8 +209,6 @@ const RestaurantOrderScreen = ({ navigation }) => {
 
     const handleFulfill = async (tableRequestId) => {
         await patchTableRequest(venue.id, tableRequestId, true);
-
-        console.log("Table request fulfilled:", tableRequests?.length);
     };
 
     const confirmDecline = () => {
@@ -261,6 +259,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
         );
 
       const renderOrder = ({ item }) => {
+
         const isSelected = selectedOrderId === item.id;
     
         // Conditions for swiping behavior

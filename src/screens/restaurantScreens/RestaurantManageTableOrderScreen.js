@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, FlatList, Modal, TextInput, ScrollView } from 'react-native';
+import { isEqual } from 'lodash';
+import { View, Text, StyleSheet, FlatList, Modal, TextInput, Image, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useRestaurantAuth } from "../../context/RestaurantContext";
 import Button from "../../components/buttons/Button";
@@ -16,7 +17,7 @@ import OrderItemCard from "../../components/helperComponents/OrderItemCard";
 
 const RestaurantManageOrderScreen = ({ navigation }) => {
     const { venue, tables, getMenuItems, displayedMenuItems,
-      getOtherMenus, getOtherMenuItems, menus, setMenus
+      getOtherMenus, getOtherMenuItems, menus, setMenus, submitOrder
     } = useRestaurantAuth();
   
     const nav = useNavigation();
@@ -69,7 +70,7 @@ const RestaurantManageOrderScreen = ({ navigation }) => {
       }
     }, [orders]);
 
-    console.log('ORDERS', orderList[0]?.name);
+    console.log('ORDERS', orderList);
 
     // Extract only needed fields, including selected customizations
     const extractOrderItemData = (item, selectedCustomizations) => {
@@ -106,6 +107,31 @@ const RestaurantManageOrderScreen = ({ navigation }) => {
         };
       });
     };
+
+    const handleRemoveFromOrder = (item) => {
+      if (!selectedTable?.id) {
+        console.error("No selected table provided");
+        return;
+      }
+      
+      setOrders((prevOrders) => {
+        const tableOrders = prevOrders[selectedTable.id] || [];
+        let removed = false;
+        const updatedOrders = tableOrders.filter((order) => {
+          // Remove the first occurrence that matches the item id
+          if (!removed && order.id === item.id) {
+            removed = true;
+            return false;
+          }
+          return true;
+        });
+        return {
+          ...prevOrders,
+          [selectedTable.id]: updatedOrders,
+        };
+      });
+    };
+    
     
     // Handle menu selection
     const handleMenuSelect = async (menu) => {
@@ -172,8 +198,9 @@ const RestaurantManageOrderScreen = ({ navigation }) => {
     }, [venue]);
   
     const groupedData = groupItemsByCategory(filteredMenuItems);
-  
+
     const renderItem = ({ item }) => {
+
       if (item.type === 'header') {
         return (
           <View style={styles.header}>
@@ -181,8 +208,15 @@ const RestaurantManageOrderScreen = ({ navigation }) => {
           </View>
         );
       }
-  
-      return <MenuItemCard item={item.data} handleAddToOrder={handleAddToOrder} />;
+
+      // Guard: if item.data doesn't exist, return null (or render a fallback)
+      if (!item.data) {
+        return null;
+      }
+
+      const isSelected = orderList && orderList.some(order => order.id === item.data.id);
+
+      return <MenuItemCard item={item.data} handleAddToOrder={handleAddToOrder} handleRemoveFromOrder={handleRemoveFromOrder} isSelected={isSelected} />;
     };
   
     return (
@@ -198,6 +232,14 @@ const RestaurantManageOrderScreen = ({ navigation }) => {
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
+              <TouchableWithoutFeedback
+                onPress={() => setTableOrderModalVisible(false)}
+              >
+                <Image 
+                  source={require('../../images/close-icon.png')}
+                  style={{width: 25, height: 25, position: 'absolute', top: 10, right: 10}}
+                />
+              </TouchableWithoutFeedback>
               <FlatList
                 data={orderList}
                 keyExtractor={(item, index) => `${index}`}
@@ -205,10 +247,35 @@ const RestaurantManageOrderScreen = ({ navigation }) => {
                 contentContainerStyle={styles.flatListContainer}
               />
               <View style={styles.buttonRow}>
-                <Button
-                  title="Submit Order"
-                  onPress={() => setTableOrderModalVisible(false)}
-                />
+              <Button
+                title="Submit Order"
+                onPress={async () => {
+                  // Calculate the base total from the orderList
+                  const baseTotal = orderList.reduce(
+                    (acc, item) => acc + parseFloat(item.price) * item.quantity,
+                    0
+                  );
+                  const taxRate = 0.08; // 8% tax rate
+                  const taxesAndFees = baseTotal * taxRate;
+                  const orderTotal = baseTotal + taxesAndFees;
+                  
+                  // Construct the payment breakdown object
+                  const paymentBreakdown = {
+                    baseAmount: baseTotal.toFixed(2),
+                    orderTotal: orderTotal.toFixed(2),
+                    taxes: taxesAndFees.toFixed(2),
+                    stripeFee: '0.00',
+                    mobylmenuFee: '0.00',
+                    deliveryFee: '0.00',
+                    stripePaymentIntentId: null,
+                  };
+                  
+                  // Submit the order with the constructed breakdown
+                  await submitOrder(orderList, paymentBreakdown, "at_venue", venue, selectedTable?.id);
+                  setOrderList([]);
+                  setTableOrderModalVisible(false);
+                }}
+              />
               </View>
 
             </View>

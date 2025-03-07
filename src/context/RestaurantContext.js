@@ -508,7 +508,6 @@ const deleteMenuItem = async (menuItemId) => {
   };
 
   const getRecentOrders = async (venueId) => {
-    console.log('Fetching recent orders for venue:', venueId);
     try {
       const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/recent_orders/${venueId}/`, {
         headers: {
@@ -517,8 +516,6 @@ const deleteMenuItem = async (menuItemId) => {
       });
   
       const recentOrders = response.data;
-
-      console.log('Recent orders:', recentOrders);
   
       setRestaurantOrders(recentOrders);
     } catch (error) {
@@ -738,6 +735,65 @@ const getTables = async (venueId, token) => {
   }
 };
 
+const submitOrder = async (orderInformation, paymentBreakdown, paymentType, venue, tableId) => {
+  // Extract venue ID and order type
+  const venueId = venue?.id;
+  const orderType = "table";
+
+  console.log("orderInformation", orderInformation);
+
+  // Prepare the items array
+  const items = orderInformation
+    .filter((info) => info.quantity > 0) // Exclude items with quantity 0
+    .map((info) => ({
+      menu_item: info.id, // Assuming 'id' is the menu item ID
+      note: info.note || '', // If there's a note property, otherwise remove
+      quantity: info.quantity,
+      customizations: Object.entries(info.customizations || {}).map(
+        ([groupId, selectedOptions]) => ({
+          group_id: groupId,
+          options: selectedOptions.map((option) => ({
+            id: option.id,
+            name: option.name,
+            price_modifier: option.price_modifier || 0,
+          })),
+        })
+      ),
+    }));
+
+  // Prepare the payload
+  const payload = {
+    venue: venueId,
+    order_type: orderType,
+    items: items,
+    paymentBreakdown: paymentBreakdown,
+    payment_method: paymentType,
+    tableId: tableId
+  };
+
+  try {
+    // Send the order data to the backend
+    const response = await axios.post(
+      'https://www.mobylmenu.com/api/orders/create/',
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${restaurantInfo?.token}`,
+        },
+      }
+    );
+
+    // Return true on success
+    return true;
+  } catch (error) {
+    console.error('Failed to Create Order:', error.response?.data || error.message);
+    // Return false on failure
+    return false;
+  }
+};
+
+
   return (
     <RestaurantContext.Provider value={{ 
       restaurantIsLoggedIn, 
@@ -790,7 +846,8 @@ const getTables = async (venueId, token) => {
       getTables,
       tables,
       lastSelectedTableId,
-      setLastSelectedTableId
+      setLastSelectedTableId,
+      submitOrder
        }}>
       {children}
     </RestaurantContext.Provider>

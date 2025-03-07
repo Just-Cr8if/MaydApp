@@ -4,21 +4,11 @@ import { Colors } from '../../styles/Constants';
 import { toTitlecase } from '../../../utils/utilityFunctions';
 
 const OrderItemCard = ({ item }) => {
-    const [quantity, setQuantity] = useState(1);
+    const [quantity, setQuantity] = useState(item?.quantity || 1);
     const [selectedCustomizations, setSelectedCustomizations] = useState({});
     const [showCustomizations, setShowCustomizations] = useState(false);
 
     console.log('ITEM', item);
-  
-    const handleDecrease = () => {
-      if (quantity > 1) {
-        setQuantity(quantity - 1);
-      }
-    };
-  
-    const handleIncrease = () => {
-      setQuantity(quantity + 1);
-    };
   
     const toggleCustomization = (groupName, option) => {
       setSelectedCustomizations((prev) => {
@@ -46,13 +36,7 @@ const OrderItemCard = ({ item }) => {
             </View>
             <View style={styles.actionContainer}>
                 <View style={styles.quantityButtonContainer}>
-                <TouchableOpacity onPress={handleDecrease} style={styles.quantityButton}>
-                    <Text style={styles.quantityButtonText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.quantityText}>{quantity}</Text>
-                <TouchableOpacity onPress={handleIncrease} style={styles.quantityButton}>
-                    <Text style={styles.quantityButtonText}>+</Text>
-                </TouchableOpacity>
+                    <Text style={styles.quantityText}>{quantity}</Text>
                 </View>
 
                 {item.customization_groups?.length > 0 && (
