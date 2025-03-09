@@ -26,7 +26,9 @@ const RightUnderlay = ({ onPress }) => (
 const MenuItemCard = ({ item, handleAddToOrder, handleRemoveFromOrder, isSelected }) => {
     const [quantity, setQuantity] = useState(1);
     const [selectedCustomizations, setSelectedCustomizations] = useState({});
-    const [showCustomizations, setShowCustomizations] = useState(false); // Toggle state
+    const [showCustomizations, setShowCustomizations] = useState(false);
+
+    console.log("SELECTED CUSTOMIZATIONS", selectedCustomizations);
 
     const swipeableRef = useRef(null);
   
@@ -40,22 +42,38 @@ const MenuItemCard = ({ item, handleAddToOrder, handleRemoveFromOrder, isSelecte
       setQuantity(quantity + 1);
     };
   
-    const toggleCustomization = (groupName, option) => {
+    const toggleCustomization = (groupId, option, isMultiple, maxSelections) => {
       setSelectedCustomizations((prev) => {
-        const groupSelections = prev[groupName] || [];
-        if (groupSelections.includes(option)) {
-          return {
-            ...prev,
-            [groupName]: groupSelections.filter((opt) => opt !== option),
-          };
+        const newCustomizations = { ...prev };
+        const groupIdStr = String(groupId);
+        const existingSelections = newCustomizations[groupIdStr] || [];
+    
+        const isOptionSelected = existingSelections.some((customization) => customization.id === option.id);
+    
+        if (isMultiple) {
+          if (isOptionSelected) {
+            // Remove the option if already selected
+            const updatedSelections = existingSelections.filter((customization) => customization.id !== option.id);
+            if (updatedSelections.length === 0) {
+              delete newCustomizations[groupIdStr]; // Remove the key if empty
+            } else {
+              newCustomizations[groupIdStr] = updatedSelections;
+            }
+          } else {
+            // Prevent exceeding maxSelections
+            if (existingSelections.length >= maxSelections) return prev;
+    
+            newCustomizations[groupIdStr] = [...existingSelections, option];
+          }
         } else {
-          return {
-            ...prev,
-            [groupName]: [...groupSelections, option],
-          };
+          // Single-selection: Replace previous selection
+          newCustomizations[groupIdStr] = [option];
         }
+    
+        return newCustomizations;
       });
     };
+    
 
     const handleOrderAndClose = () => {
       handleAddToOrder(quantity, item, selectedCustomizations);
@@ -112,7 +130,7 @@ const MenuItemCard = ({ item, handleAddToOrder, handleRemoveFromOrder, isSelecte
                 </TouchableOpacity>
               </View>
 
-              {item.customization_groups?.length > 0 && (
+              {item.customizations?.length > 0 && (
                 <TouchableOpacity
                   style={styles.customizationToggle}
                   onPress={() => setShowCustomizations((prev) => !prev)}
@@ -129,32 +147,39 @@ const MenuItemCard = ({ item, handleAddToOrder, handleRemoveFromOrder, isSelecte
           {/* Customization Groups (Hidden by Default) */}
           {showCustomizations && (
             <View style={styles.customizationGroupContainer}>
-              {item.customization_groups.map((group, index) => (
-                <View key={index} style={styles.customizationGroup}>
-                  <Text style={styles.customizationGroupTitle}>{group.name}</Text>
-                  {group.options.map((option, optIndex) => {
-                    const isSelected =
-                      selectedCustomizations[group.name]?.includes(option) || false;
-                    return (
-                      <TouchableOpacity
-                        key={optIndex}
-                        style={[
-                          styles.customizationOption,
-                          isSelected && styles.selectedCustomizationOption,
-                        ]}
-                        onPress={() => toggleCustomization(group.name, option)}
-                      >
-                        <Text style={styles.customizationOptionText}>{option.name}</Text>
-                        <Text style={styles.customizationOptionPrice}>
-                          +${option.price_modifier}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              ))}
+              {item.customizations.map((group, index) => {
+                const selectedOptions = selectedCustomizations[group.id] || [];
+                const isMaxReached = selectedOptions.length >= group.max_selections;
+
+                return (
+                  <View key={index} style={styles.customizationGroup}>
+                    <Text style={styles.customizationGroupTitle}>
+                      {group.name} {group.min_selections > 0 && <Text style={styles.required}>*Required</Text>}
+                    </Text>
+                    {group.options.map((option, optIndex) => {
+                      const isSelected = selectedOptions.includes(option);
+
+                      return (
+                        <TouchableOpacity
+                          key={optIndex}
+                          style={[
+                            styles.customizationOption,
+                            isSelected && styles.selectedCustomizationOption,
+                            isMaxReached && !isSelected && styles.disabledOption
+                          ]}
+                          onPress={() => !isMaxReached || isSelected ? toggleCustomization(group.id, option, group.max_selections > 1, group.max_selections) : null}
+                        >
+                          <Text style={styles.customizationOptionText}>{option.name}</Text>
+                          <Text style={styles.customizationOptionPrice}>+${option.price_modifier}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                );
+              })}
             </View>
           )}
+
         </View>
       </SwipeableItem>
     );

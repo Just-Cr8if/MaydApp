@@ -23,8 +23,6 @@ const RestaurantOrderScreen = ({ navigation }) => {
     const [declineOrderId, setDeclineOrderId] = useState(null);
     const [showTableRequests, setShowTableRequests] = useState(false);
 
-    console.log('ORDERS', restaurantOrders);
-
     useEffect(() => {
           const fetchOrderData = async () => {
             try {
@@ -182,16 +180,18 @@ const RestaurantOrderScreen = ({ navigation }) => {
     return orders.filter(order => order.status === 'submitted' || order.status === 'pending');
     }, [orderType, orders]);
 
+    console.log('filteredOrders:', orders[10]?.order_items);
+
 
     const transformOrderType = (item) => {
-        if (item.order_type === 'pick_up') {
+        if (item.order_type === 'table' && item?.table?.table_number) {
+            return `Table #${item?.table?.table_number || item?.venue_table_id}`;
+        } else if (item.order_type === 'pick_up') {
             return 'Pick Up';
         } else if (item.order_type === 'delivery') {
             return 'Delivery';
-        } else if (item.order_type === 'table' && item.table) {
-            return `Table #${item.table.table_number}`;
         }
-        return item.order_type;
+        return 'Unknown';
     };
     
     const handleAccept = (orderId) => {
@@ -456,7 +456,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
                             <Button
                                 title="Confirm"
                                 onPress={confirmDecline}
-                                disabled={!declineReason.trim()} // Disable if no reason
+                                disabled={!declineReason.trim()}
                             />
                         </View>
                     </View>
@@ -529,14 +529,14 @@ const RestaurantOrderScreen = ({ navigation }) => {
                 )
                 :
                 (
-                    <FlatList
-                        data={filteredOrders}
-                        keyExtractor={(item) => item.id.toString()}
-                        renderItem={renderOrder}
-                        contentContainerStyle={styles.listContainer}
-                        ListEmptyComponent={renderEmptyComponent}
-                        showsVerticalScrollIndicator={false}
-                    />
+                <FlatList
+                    data={filteredOrders}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={renderOrder}
+                    contentContainerStyle={styles.listContainer}
+                    ListEmptyComponent={renderEmptyComponent}
+                    showsVerticalScrollIndicator={false}
+                />
                 )}
 
             </PageBody>

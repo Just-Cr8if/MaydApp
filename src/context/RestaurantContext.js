@@ -741,40 +741,40 @@ const submitOrder = async (orderInformation, paymentBreakdown, paymentType, venu
   const orderType = "table";
 
   console.log("orderInformation", orderInformation);
+  console.log("restaurantInfo?.token", restaurantInfo?.token);
 
   // Prepare the items array
   const items = orderInformation
-    .filter((info) => info.quantity > 0) // Exclude items with quantity 0
+    .filter((info) => info.quantity > 0)
     .map((info) => ({
-      menu_item: info.id, // Assuming 'id' is the menu item ID
-      note: info.note || '', // If there's a note property, otherwise remove
+      menu_item: info.id,
+      note: info.note || '',
       quantity: info.quantity,
-      customizations: Object.entries(info.customizations || {}).map(
-        ([groupId, selectedOptions]) => ({
-          group_id: groupId,
-          options: selectedOptions.map((option) => ({
+      customizations: Object.fromEntries(
+        Object.entries(info.customizations || {}).map(([groupId, selectedOptions]) => [
+          groupId, // Keep groupId as a key
+          selectedOptions.map((option) => ({
             id: option.id,
             name: option.name,
-            price_modifier: option.price_modifier || 0,
+            price_modifier: option.price_modifier || "0.00",
           })),
-        })
+        ])
       ),
     }));
 
   // Prepare the payload
   const payload = {
-    venue: venueId,
+    venue_id: venueId,
     order_type: orderType,
     items: items,
     paymentBreakdown: paymentBreakdown,
     payment_method: paymentType,
-    tableId: tableId
+    table_id: tableId
   };
 
   try {
-    // Send the order data to the backend
     const response = await axios.post(
-      'https://www.mobylmenu.com/api/orders/create/',
+      `${MOBYLMENU_API_BASE_URL}/orders/create/`,
       payload,
       {
         headers: {
@@ -788,7 +788,6 @@ const submitOrder = async (orderInformation, paymentBreakdown, paymentType, venu
     return true;
   } catch (error) {
     console.error('Failed to Create Order:', error.response?.data || error.message);
-    // Return false on failure
     return false;
   }
 };

@@ -70,8 +70,6 @@ const RestaurantManageOrderScreen = ({ navigation }) => {
       }
     }, [orders]);
 
-    console.log('ORDERS', orderList);
-
     // Extract only needed fields, including selected customizations
     const extractOrderItemData = (item, selectedCustomizations) => {
       return {
@@ -132,7 +130,6 @@ const RestaurantManageOrderScreen = ({ navigation }) => {
       });
     };
     
-    
     // Handle menu selection
     const handleMenuSelect = async (menu) => {
         try {
@@ -160,9 +157,9 @@ const RestaurantManageOrderScreen = ({ navigation }) => {
 
     // Group items by category
     const groupItemsByCategory = (itemsObj) => {
-      if (!itemsObj || Object.keys(itemsObj).length === 0) return []; // Handle undefined or empty object
+      if (!itemsObj || Object.keys(itemsObj).length === 0) return [];
   
-      const items = Object.values(itemsObj); // Convert the object to an array
+      const items = Object.values(itemsObj);
       const groupedItems = [];
   
       // Group items by their category
