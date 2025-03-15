@@ -22,13 +22,10 @@ const RightUnderlay = ({ onPress }) => (
   </TouchableOpacity>
 );
 
-
 const MenuItemCard = ({ item, handleAddToOrder, handleRemoveFromOrder, isSelected }) => {
     const [quantity, setQuantity] = useState(1);
     const [selectedCustomizations, setSelectedCustomizations] = useState({});
     const [showCustomizations, setShowCustomizations] = useState(false);
-
-    console.log("SELECTED CUSTOMIZATIONS", selectedCustomizations);
 
     const swipeableRef = useRef(null);
   

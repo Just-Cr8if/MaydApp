@@ -180,9 +180,6 @@ const RestaurantOrderScreen = ({ navigation }) => {
     return orders.filter(order => order.status === 'submitted' || order.status === 'pending');
     }, [orderType, orders]);
 
-    console.log('filteredOrders:', orders[10]?.order_items);
-
-
     const transformOrderType = (item) => {
         if (item.order_type === 'table' && item?.table?.table_number) {
             return `Table #${item?.table?.table_number || item?.venue_table_id}`;
@@ -531,7 +528,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
                 (
                 <FlatList
                     data={filteredOrders}
-                    keyExtractor={(item) => item.id.toString()}
+                    keyExtractor={(item, index) => (item?.id ? item.id.toString() : `fallback-${index}`)}
                     renderItem={renderOrder}
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={renderEmptyComponent}
