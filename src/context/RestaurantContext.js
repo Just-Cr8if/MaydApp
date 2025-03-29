@@ -480,7 +480,6 @@ const deleteMenuItem = async (menuItemId) => {
       });
   
       const schedule = response.data;
-      console.log("Schedule retrieved successfully:", schedule);
   
       return schedule;
     } catch (error) {
@@ -724,6 +723,8 @@ const getTables = async (venueId, token) => {
         Authorization: `Token ${token}`,
       },
     });
+
+    console.log('Tables:', response.data);
 
     setTables(response.data);
 

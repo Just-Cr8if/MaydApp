@@ -1,4 +1,4 @@
-const environment = "production";
+export const environment = "production";
 
 export const PEGASUS_API_BASE_URL = "https://mobylmenu-pegasus-7c9da5dbb688.herokuapp.com/api"
 export const MOBYLMENU_API_BASE_URL = environment === "development" ? "http://127.0.0.1:8000/api" : "https://www.mobylmenu.com/api";

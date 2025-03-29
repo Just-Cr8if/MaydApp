@@ -30,6 +30,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.MaydByMobylMenu.MaydByMobylMenu",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Allow MobylMenu to access your photos to upload menu items.",
         "NSCameraUsageDescription": "Allow MobylMenu to access your camera to take photos."

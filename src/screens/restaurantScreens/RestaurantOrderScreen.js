@@ -154,31 +154,36 @@ const RestaurantOrderScreen = ({ navigation }) => {
         }
     }, [tableRequestsLastMessage, setTableRequests]);
 
-    const orders = restaurantOrders || [];
+    const orders = Array.isArray(restaurantOrders) ? restaurantOrders : [];
 
     const orderCounts = useMemo(() => {
-    const counts = {
-        New: orders.filter(order => order.status === 'submitted').length,
-        Open: orders.filter(order => order.status === 'accepted').length,
-        Closed: orders.filter(order =>
-        ['closed', 'declined'].includes(order.status)
-        ).length,
-    };
-    return counts;
-    }, [orders]);
-
-    const filteredOrders = useMemo(() => {
-    if (orderType === 'New') {
+        if (orders.length === 0) {
+          return { New: 0, Open: 0, Closed: 0 };
+        }
+        return {
+          New: orders.filter(order => order.status === 'submitted').length,
+          Open: orders.filter(order => order.status === 'accepted').length,
+          Closed: orders.filter(order =>
+            ['closed', 'declined'].includes(order.status)
+          ).length,
+        };
+      }, [orders]);
+      
+      const filteredOrders = useMemo(() => {
+        if (orders.length === 0) return [];
+        
+        if (orderType === 'New') {
+          return orders.filter(order => order.status === 'submitted' || order.status === 'pending');
+        } else if (orderType === 'Open') {
+          return orders.filter(order => order.status === 'accepted');
+        } else if (orderType === 'Closed') {
+          return orders.filter(order =>
+            ['closed', 'declined'].includes(order.status)
+          );
+        }
+        // Default fallback
         return orders.filter(order => order.status === 'submitted' || order.status === 'pending');
-    } else if (orderType === 'Open') {
-        return orders.filter(order => order.status === 'accepted');
-    } else if (orderType === 'Closed') {
-        return orders.filter(order =>
-        ['closed', 'declined'].includes(order.status)
-        );
-    }
-    return orders.filter(order => order.status === 'submitted' || order.status === 'pending');
-    }, [orderType, orders]);
+      }, [orderType, orders]);
 
     const transformOrderType = (item) => {
         if (item.order_type === 'table' && item?.table?.table_number) {

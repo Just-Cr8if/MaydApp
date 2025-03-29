@@ -36,8 +36,6 @@ const HoursOfOperationsScreen = () => {
     getWeeklySchedule();
   }, []);
 
-  console.log(selectedSchedule);
-
   const handleChange = (day, time, field, value) => {
     setSchedule((prev) => ({
       ...prev,

@@ -7,8 +7,6 @@ const OrderItemCard = ({ item }) => {
     const [quantity, setQuantity] = useState(item?.quantity || 1);
     const [selectedCustomizations, setSelectedCustomizations] = useState({});
     const [showCustomizations, setShowCustomizations] = useState(false);
-
-    console.log('ITEM', item);
   
     const toggleCustomization = (groupName, option) => {
       setSelectedCustomizations((prev) => {
