@@ -115,11 +115,8 @@ const fetchDriverBatchedOrder = async (driverId) => {
   try {
     // Step 1: Fetch the active order for the driver from Pegasus
     const pegasusResponse = await axios.get(`${PEGASUS_API_BASE_URL}/driver_active_order/${driverId}/`);
-    print('PEGASUS', pegasusResponse);
-    
-    const { batched_order_id } = pegasusResponse.data;
 
-    print('BATCHEDID', batched_order_id);
+    const { batched_order_id } = pegasusResponse.data;
 
     if (!batched_order_id) {
       return
