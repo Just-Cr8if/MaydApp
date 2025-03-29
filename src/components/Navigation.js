@@ -6,7 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image, Text } from 'react-native';
 
 // Import screens
-import SplashScreen from '../screens/SplashScreen';
 import InitialScreen from '../screens/InitialScreen';
 import DriverHomeScreen from '../screens/driverScreens/DriverHomeScreen';
 import OrderDetailsScreen from '../screens/driverScreens/OrderDetailsScreen';
@@ -232,26 +231,11 @@ const RestaurantTabNavigator = () => {
 const Navigation = () => {
   const { isLoggedIn, selectedRole, setSelectedRole } = useAuth();
   const { restaurantIsLoggedIn, restaurantIsLoggingIn, teamMemberRole } = useRestaurantAuth();
-  const [isLoading, setIsLoading] = useState(true);
 
   const handleSelectRole = async role => {
     await AsyncStorage.setItem('selectedRole', role);
     setSelectedRole(role);
   };
-
-  // Simulate fetching data on launch with a 2-second delay
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
-
-
-  if (isLoading) {
-    return <SplashScreen />;
-  }
 
   return (
     <NavigationContainer>

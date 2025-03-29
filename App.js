@@ -1,5 +1,6 @@
 import React from 'react';
 import Bugsnag from '@bugsnag/expo';
+import BugsnagPluginReact from '@bugsnag/plugin-react';
 import Navigation from './src/components/Navigation';
 import { AuthProvider } from './src/context/AuthContext';
 import { RestaurantProvider } from './src/context/RestaurantContext';
@@ -7,8 +8,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 Bugsnag.start({
   apiKey: 'eb7d47c970591295bfa8bbb7eae35d13',
-  appVersion: '1.1.1',
+  appVersion: '1.0.0',
   releaseStage: 'production',
+  plugins: [new BugsnagPluginReact()]
 });
 
 // Get the React error boundary from Bugsnag
