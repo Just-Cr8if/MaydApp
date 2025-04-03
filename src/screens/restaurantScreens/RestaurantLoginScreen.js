@@ -10,91 +10,91 @@ import { PageContainer, PageBody } from "../../components/helperComponents/PageE
 
 
 const RestaurantLoginScreen = ({navigation}) => {
-    const { restaurantLogin, restaurantIsLoggingIn, errorMessage, 
-        setErrorMessage} = useRestaurantAuth();
-    const [emailAddress, setEmailAddress] = useState(null);
-    const [password, setPassword] = useState(null);
-    const [venueId, setVenueId] = useState(null);
-    const { width } = Dimensions.get('window');
-    const isLargeScreen = width >= 768;
+  const { restaurantLogin, restaurantIsLoggingIn, errorMessage, 
+    setErrorMessage} = useRestaurantAuth();
+  const [emailAddress, setEmailAddress] = useState(null);
+  const [password, setPassword] = useState(null);
+  const [venueId, setVenueId] = useState(null);
+  const { width } = Dimensions.get('window');
+  const isLargeScreen = width >= 768;
 
-    const openLink = async (url) => {
-        if (await Linking.canOpenURL(url)) {
-          await Linking.openURL(url);
-        }
-      };
+  const openLink = async (url) => {
+      if (await Linking.canOpenURL(url)) {
+        await Linking.openURL(url);
+      }
+    };
 
-      useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            setErrorMessage(null);
-        }, 2000);
+    useEffect(() => {
+      const timeoutId = setTimeout(() => {
+          setErrorMessage(null);
+      }, 2000);
 
-        return () => clearTimeout(timeoutId);
-    }, [errorMessage]);
+      return () => clearTimeout(timeoutId);
+  }, [errorMessage]);
 
-    const renderLoginForm = () => (
-        <Animated.View>
-          <Text style={styles.pageHeader}>Sign In</Text>
-          <View style={{ width: '100%'}}>
-            <View style={{ height: 40 }}>
-                {errorMessage &&
-                <Text style={styles.error}>
-                    {errorMessage}
-                </Text>}
-            </View>
-            <Text style={styles.fieldHeader}>EMAIL</Text>
-            <TextInput
-              placeholder="Enter Email Address"
-              value={emailAddress}
-              style={styles.input}
-              onChangeText={(text) => setEmailAddress(text.toLocaleLowerCase())}
-              placeholderTextColor={'grey'}
-            />
+  const renderLoginForm = () => (
+      <Animated.View>
+        <Text style={styles.pageHeader}>Sign In</Text>
+        <View style={{ width: '100%'}}>
+          <View style={{ height: 40 }}>
+              {errorMessage &&
+              <Text style={styles.error}>
+                  {errorMessage}
+              </Text>}
           </View>
-          <View style={{ width: '100%'}}>
-            <Text style={styles.fieldHeader}>PASSWORD</Text>
-            <TextInput
-              placeholder="Enter Password"
-              value={password}
-              style={styles.input}
-              onChangeText={(text) => setPassword(text)}
-              secureTextEntry
-              placeholderTextColor={'grey'}
-            />
-          </View>
-          <View style={{ width: '100%' }}>
-            <Text style={styles.fieldHeader}>VENUE ID - OWNER ONLY</Text>
-            <TextInput
-              placeholder="Venue ID"
-              value={venueId}
-              style={styles.smallInput}
-              onChangeText={(text) => setVenueId(text)}
-              placeholderTextColor={'grey'}
-            />
-          </View>
-          <TouchableOpacity
-            onPress={() => openLink('https://www.mobylmenu.com/password-reset/')}
-            style={{ marginVertical: 10, alignSelf: 'flex-end' }}
-          >
-            <Text style={[styles.link]}>FORGOT PASSWORD?</Text>
-          </TouchableOpacity>
-          <LargeButton
-            title="Sign In"
-            isLoading={restaurantIsLoggingIn}
-            onPress={async () => {
-                await restaurantLogin(emailAddress, password, venueId);
-            }}
+          <Text style={styles.fieldHeader}>EMAIL</Text>
+          <TextInput
+            placeholder="Enter Email Address"
+            value={emailAddress}
+            style={styles.input}
+            onChangeText={(text) => setEmailAddress(text.toLocaleLowerCase())}
+            placeholderTextColor={'grey'}
           />
-          <View style={styles.subContainer}>
-          <View style={styles.row}>
-            <View style={styles.line} />
-            <Text style={styles.text}>NEW TO MOBYLMENU?</Text>
-            <View style={styles.line} />
-          </View>
-          </View>
-          <LargeButton title="Register" alternateColor={'#4C4B50'}/>
-        </Animated.View>
-      );
+        </View>
+        <View style={{ width: '100%'}}>
+          <Text style={styles.fieldHeader}>PASSWORD</Text>
+          <TextInput
+            placeholder="Enter Password"
+            value={password}
+            style={styles.input}
+            onChangeText={(text) => setPassword(text)}
+            secureTextEntry
+            placeholderTextColor={'grey'}
+          />
+        </View>
+        <View style={{ width: '100%' }}>
+          <Text style={styles.fieldHeader}>VENUE ID - OWNER ONLY</Text>
+          <TextInput
+            placeholder="Venue ID"
+            value={venueId}
+            style={styles.smallInput}
+            onChangeText={(text) => setVenueId(text)}
+            placeholderTextColor={'grey'}
+          />
+        </View>
+        <TouchableOpacity
+          onPress={() => openLink('https://www.mobylmenu.com/password-reset/')}
+          style={{ marginVertical: 10, alignSelf: 'flex-end' }}
+        >
+          <Text style={[styles.link]}>FORGOT PASSWORD?</Text>
+        </TouchableOpacity>
+        <LargeButton
+          title="Sign In"
+          isLoading={restaurantIsLoggingIn}
+          onPress={async () => {
+              await restaurantLogin(emailAddress, password, venueId);
+          }}
+        />
+        <View style={styles.subContainer}>
+        <View style={styles.row}>
+          <View style={styles.line} />
+          <Text style={styles.text}>NEW TO MOBYLMENU?</Text>
+          <View style={styles.line} />
+        </View>
+        </View>
+        <LargeButton title="Register" alternateColor={'#4C4B50'}/>
+      </Animated.View>
+    );
 
     return (
         <PageContainer>

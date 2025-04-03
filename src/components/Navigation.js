@@ -20,7 +20,10 @@ import RestaurantMenuItemScreen from '../screens/restaurantScreens/RestaurantMen
 import RestaurantMenuScreen from '../screens/restaurantScreens/RestaurantMenuScreen';
 import RestaurantOrderScreen from '../screens/restaurantScreens/RestaurantOrderScreen';
 import RestaurantSettingsScreen from '../screens/restaurantScreens/RestaurantSettingsScreen';
-import RestaurantManageTableOrderScreen from '../screens/restaurantScreens/RestaurantManageTableOrderScreen';
+import ManageTableOrderScreen from '../screens/restaurantScreens/ManageTableOrderScreen';
+import TablesScreen from '../screens/restaurantScreens/paymentsScreens/TablesScreen';
+import TableOrdersScreen from '../screens/restaurantScreens/paymentsScreens/TableOrderScreen';
+import PaymentScreen from '../screens/restaurantScreens/paymentsScreens/PaymentScreen';
 
 import AppPhotosScreen from '../screens/restaurantScreens/settingsScreens/AppPhotosScreen';
 import ContactSupportScreen from '../screens/restaurantScreens/settingsScreens/ContactSupportScreen';
@@ -30,6 +33,7 @@ import VenueInfoScreen from '../screens/restaurantScreens/settingsScreens/VenueI
 
 import { useAuth } from '../context/AuthContext';
 import { useRestaurantAuth } from '../context/RestaurantContext';
+import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -111,8 +115,30 @@ const RestaurantOrderStackNavigator = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="RestaurantManageTableOrder"
-        component={RestaurantManageTableOrderScreen}
+        name="ManageTableOrder"
+        component={ManageTableOrderScreen}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const RestaurantPaymentStackNavigator = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Tables"
+        component={TablesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="TableOrders"
+        component={TableOrdersScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PaymentScreen"
+        component={PaymentScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
@@ -196,6 +222,34 @@ const RestaurantTabNavigator = () => {
       />
 
       <Tab.Screen
+        name="Payments"
+        component={RestaurantPaymentStackNavigator}
+        options={{
+          headerShown: false,
+          tabBarLabel: ({ focused }) => (
+            <Text
+              style={{
+                color: focused ? '#00A6FF' : 'black',
+                fontSize: 12,
+              }}
+            >
+              Payments
+            </Text>
+          ),
+          tabBarIcon: ({ focused }) => (
+            <Image 
+              source={
+                focused 
+                  ? require('../images/payments-icon-blue.png') 
+                  : require('../images/payments-icon-black.png')
+              }  
+              style={{ width: 25, height: 25 }}
+            />
+          ),
+        }}
+      />
+
+      <Tab.Screen
         name="Settings"
         component={RestaurantSettingsStackNavigator}
         options={{
@@ -230,7 +284,7 @@ const RestaurantTabNavigator = () => {
 // Main Navigation Component
 const Navigation = () => {
   const { isLoggedIn, selectedRole, setSelectedRole } = useAuth();
-  const { restaurantIsLoggedIn, restaurantIsLoggingIn, teamMemberRole } = useRestaurantAuth();
+  const { restaurantIsLoggedIn, teamMemberRole } = useRestaurantAuth();
 
   const handleSelectRole = async role => {
     await AsyncStorage.setItem('selectedRole', role);

@@ -230,35 +230,35 @@ const RestaurantOrderScreen = ({ navigation }) => {
         setSelectedOrderId(null);
     };
 
-      const LeftUnderlay = ({ onPress }) => (
-          <TouchableOpacity onPress={onPress}
-            style={[styles.underlayAction, styles.alignLeft, { backgroundColor: green }]}
-          >
-            <Text style={styles.actionText}>Accept</Text>
-          </TouchableOpacity>
-      );
-
-      const LeftCloseUnderlay = ({ onPress }) => (
+    const LeftUnderlay = ({ onPress }) => (
         <TouchableOpacity onPress={onPress}
-          style={[styles.underlayAction, styles.alignLeft, { backgroundColor: mainColor }]}
+        style={[styles.underlayAction, styles.alignLeft, { backgroundColor: green }]}
         >
-          <Text style={styles.actionText}>Close</Text>
+        <Text style={styles.actionText}>Accept</Text>
         </TouchableOpacity>
     );
-      
-      const RightUnderlay = ({ onPress }) => (
-          <TouchableOpacity onPress={onPress}
-          style={[styles.underlayAction, styles.alignRight, { backgroundColor: red }]}
-          >
-            <Text style={styles.actionText}>Decline</Text>
-          </TouchableOpacity>
-      );
 
-      const renderEmptyComponent = () => (
-        <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No orders here yet.</Text>
-        </View>
-        );
+    const LeftCloseUnderlay = ({ onPress }) => (
+    <TouchableOpacity onPress={onPress}
+        style={[styles.underlayAction, styles.alignLeft, { backgroundColor: mainColor }]}
+    >
+        <Text style={styles.actionText}>Close</Text>
+    </TouchableOpacity>
+    );
+      
+    const RightUnderlay = ({ onPress }) => (
+        <TouchableOpacity onPress={onPress}
+        style={[styles.underlayAction, styles.alignRight, { backgroundColor: red }]}
+        >
+        <Text style={styles.actionText}>Decline</Text>
+        </TouchableOpacity>
+    );
+
+    const renderEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No orders here yet.</Text>
+    </View>
+    );
 
       const renderOrder = ({ item }) => {
 
@@ -466,7 +466,7 @@ const RestaurantOrderScreen = ({ navigation }) => {
             </Modal>
                 <TouchableOpacity
                     style={styles.plusSignAndTextContainer}
-                    onPress={() => navigation.navigate('RestaurantManageTableOrder')}    
+                    onPress={() => navigation.navigate('ManageTableOrder')}    
                 >
                     <Image
                         source={{ uri: "https://mobyl-menu-bucket.s3.amazonaws.com/MM-Images/plus.png" }}

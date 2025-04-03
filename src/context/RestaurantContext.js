@@ -26,6 +26,7 @@ export const RestaurantProvider = ({ children }) => {
   const [teamMemberRole, setTeamMemberRole] = useState(null);
   const [lastSelectedTableId, setLastSelectedTableId] = useState(null);
   const [tables, setTables] = useState([]);
+  const [isTerminalConnected, setIsTerminalConnected] = useState(false);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -36,7 +37,9 @@ export const RestaurantProvider = ({ children }) => {
           const parsedRestaurantInfo = JSON.parse(storedRestaurantInfo);
           const savedRole = await AsyncStorage.getItem('selectedRole');
           const savedVenue = await AsyncStorage.getItem('venue');
-          if (savedRole) setSelectedRole(savedRole);
+          if (savedRole) {
+            setSelectedRole(savedRole);
+          }
           if (parsedRestaurantInfo.token) {
             setRestaurantInfo(parsedRestaurantInfo);
             if (parsedRestaurantInfo.team_member) {
@@ -100,6 +103,9 @@ export const RestaurantProvider = ({ children }) => {
         // Save other restaurant info
         await AsyncStorage.setItem('restaurantInfo', JSON.stringify(restaurantData));
         setRestaurantIsLoggedIn(true);
+
+        await getTables(restaurantData.venue.id, restaurantData.token);
+
       } else {
         setErrorMessage("Invalid credentials. Check your email, password, and venue ID.");
       }
@@ -699,13 +705,14 @@ const deleteMenu = async (menuId) => {
 };
 
 const getTableOrders = async (tableId) => {
-  console.log('Getting table orders for table:', tableId);
   try {
     const response = await axios.get(`${MOBYLMENU_API_BASE_URL}/tables/${tableId}/orders/`, {
       headers: {
         Authorization: `Token ${restaurantInfo?.token}`,
       },
     });
+
+    console.log("Table orders:", response.data);
 
     return response.data;
 
@@ -723,8 +730,6 @@ const getTables = async (venueId, token) => {
         Authorization: `Token ${token}`,
       },
     });
-
-    console.log('Tables:', response.data);
 
     setTables(response.data);
 
@@ -793,6 +798,21 @@ const submitOrder = async (orderInformation, paymentBreakdown, paymentType, venu
   }
 };
 
+  const fetchConnectionToken = async () => {
+    try {
+      const response = await axios.post(
+        `${MOBYLMENU_API_BASE_URL}/create_connection_token/`,
+        {}
+      );
+
+      return response.data.secret;
+    } catch (error) {
+      console.error('Error fetching connection token:', error);
+      throw error;
+    }
+  };
+
+
 
   return (
     <RestaurantContext.Provider value={{ 
@@ -847,7 +867,8 @@ const submitOrder = async (orderInformation, paymentBreakdown, paymentType, venu
       tables,
       lastSelectedTableId,
       setLastSelectedTableId,
-      submitOrder
+      submitOrder,
+      fetchConnectionToken
        }}>
       {children}
     </RestaurantContext.Provider>

@@ -198,7 +198,7 @@ const MenuItemCard = ({ item, handleAddToOrder, handleRemoveFromOrder, isSelecte
       elevation: 3
     },
     selectedOrder: {
-      backgroundColor: '#d0f0c0', // Light green background to indicate selection
+      backgroundColor: '#d0f0c0',
       borderColor: '#76c893',
     },
     card: {

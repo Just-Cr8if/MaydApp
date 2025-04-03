@@ -15,7 +15,7 @@ import MenuItemCard from "../../components/helperComponents/MenuItemCard";
 import OrderItemCard from "../../components/helperComponents/OrderItemCard";
 
 
-const RestaurantManageOrderScreen = ({ navigation }) => {
+const ManageTableOrderScreen = ({ navigation }) => {
     const { venue, tables, getMenuItems, displayedMenuItems,
       getOtherMenus, getOtherMenuItems, menus, setMenus, submitOrder
     } = useRestaurantAuth();
@@ -400,4 +400,4 @@ const styles = StyleSheet.create({
 
 });
   
-  export default RestaurantManageOrderScreen;
+  export default ManageTableOrderScreen;
